@@ -117,8 +117,8 @@ public class Property {
     // @ConfigProperty(name = "quarkus.application.name")
     // private String appName;
 
-    // @ConfigProperty(name = "spring.cloud.config.profile", defaultValue = "dev")
-    // private String environment;
+     @ConfigProperty(name = "spring.cloud.config.profile", defaultValue = "dev")
+     private String environment;
 
     // @ConfigProperty(name = "fareye.inbound-request-topic")
     // private String inboundRequestTopic;
