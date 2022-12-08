@@ -23,6 +23,7 @@ import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotBlank;
 
+import com.fareyeconnect.tool.task.BaseNode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -57,7 +58,7 @@ public class Service extends AbstractEntity {
 
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb")
-    List<Node> node;
+    List<BaseNode> node;
 
     @OneToOne 
     @JsonIgnore
