@@ -7,7 +7,6 @@ import org.graalvm.polyglot.Context;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Startup
 public class Start extends Task {
 
     @Override

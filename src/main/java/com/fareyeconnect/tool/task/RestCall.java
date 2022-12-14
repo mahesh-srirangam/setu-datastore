@@ -2,10 +2,11 @@ package com.fareyeconnect.tool.task;
 
 import io.quarkus.runtime.Startup;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.graalvm.polyglot.Context;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-@Startup
 public class RestCall extends Task {
 
     @Override
