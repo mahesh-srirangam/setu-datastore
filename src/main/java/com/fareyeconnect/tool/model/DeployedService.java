@@ -1,6 +1,6 @@
 package com.fareyeconnect.tool.model;
 
-import com.fareyeconnect.tool.task.TaskList;
+import com.fareyeconnect.tool.task.Task;
 import lombok.Data;
 
 @Data
@@ -9,6 +9,6 @@ public class DeployedService {
     private String code;
     private String connectorCode;
 
-    private TaskList node;
+    private Task node;
 
 }

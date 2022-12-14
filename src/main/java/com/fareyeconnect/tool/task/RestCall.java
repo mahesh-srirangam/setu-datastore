@@ -1,10 +1,13 @@
 package com.fareyeconnect.tool.task;
 
+import io.quarkus.runtime.Startup;
 import lombok.Data;
 import org.graalvm.polyglot.Context;
 
 @Data
-public class RestCall extends BaseNode implements Executor {
+@Startup
+public class RestCall extends Task {
+
     @Override
     public void execute(Context context) {
 

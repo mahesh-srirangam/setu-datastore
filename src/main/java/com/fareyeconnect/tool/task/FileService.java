@@ -6,7 +6,8 @@ import org.graalvm.polyglot.Context;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class FileService extends BaseNode implements Executor {
+public class FileService extends Task {
+
 
     @Override
     public void execute(Context context) {

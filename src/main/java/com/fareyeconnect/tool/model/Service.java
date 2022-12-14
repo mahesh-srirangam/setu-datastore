@@ -1,11 +1,11 @@
 /**
  * ****************************************************************************
- *
+ * <p>
  * Copyright (c) 2022, FarEye and/or its affiliates. All rights
  * reserved.
  * ___________________________________________________________________________________
- *
- *
+ * <p>
+ * <p>
  * NOTICE: All information contained herein is, and remains the property of
  * FarEye and its suppliers,if any. The intellectual and technical concepts
  * contained herein are proprietary to FarEye. and its suppliers and
@@ -16,27 +16,24 @@
  */
 package com.fareyeconnect.tool.model;
 
-import java.util.List;
+import com.fareyeconnect.dto.Flow;
+import com.fareyeconnect.model.AbstractEntity;
+import com.fareyeconnect.tool.task.Task;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import io.smallrye.common.constraint.NotNull;
+import io.smallrye.mutiny.Uni;
+import lombok.Data;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotBlank;
-
-import com.fareyeconnect.tool.task.BaseNode;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-
-import com.fareyeconnect.model.AbstractEntity;
-import com.fareyeconnect.tool.Node;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-
-import io.smallrye.common.constraint.NotNull;
-import lombok.Data;
+import java.util.List;
 
 /**
- *
  * @author Baldeep Singh Kwatra
  */
 @Data
@@ -45,23 +42,27 @@ import lombok.Data;
 public class Service extends AbstractEntity {
 
     @NotBlank
-    String code;
+    private String code;
 
     @NotNull
-    String name;
+    private String name;
 
-    public String notes;
+    private String notes;
 
-    public boolean published;
-
-    public int version;
+    private int version;
 
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb")
-    List<BaseNode> node;
+    private List<Task> flow;
 
-    @OneToOne 
+    private String config;
+
+    @OneToOne
     @JsonIgnore
-    public Connector connector;
+    private Connector connector;
+
+    public static Uni<Service> findByCode(String serviceCode) {
+        return find("code", serviceCode).firstResult();
+    }
 
 }

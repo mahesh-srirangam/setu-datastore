@@ -1,11 +1,11 @@
 /**
  * ****************************************************************************
- *
+ * <p>
  * Copyright (c) 2022, FarEye and/or its affiliates. All rights
  * reserved.
  * ___________________________________________________________________________________
- *
- *
+ * <p>
+ * <p>
  * NOTICE: All information contained herein is, and remains the property of
  * FarEye and its suppliers,if any. The intellectual and technical concepts
  * contained herein are proprietary to FarEye. and its suppliers and
@@ -34,7 +34,7 @@ public final class AppConstant {
     public static final String SPACE = " ";
     public static final String COMMA = ",";
     public static final String QUESTION_MARK = "?";
-    
+
 
     public enum ServiceCode {
         GENERATE_AWB("generate-awb"), CANCEL_AWB("cancel-awb"), TRACKING_PULL("tracking-pull"),
@@ -80,4 +80,9 @@ public final class AppConstant {
             return text;
         }
     }
+
+    public enum Flow {
+        START, REST, SCRIPT, FILE
+    }
+
 }
