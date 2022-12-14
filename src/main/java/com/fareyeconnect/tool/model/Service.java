@@ -16,8 +16,8 @@
  */
 package com.fareyeconnect.tool.model;
 
-import com.fareyeconnect.dto.Flow;
 import com.fareyeconnect.model.AbstractEntity;
+import com.fareyeconnect.tool.dto.Config;
 import com.fareyeconnect.tool.task.Task;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
@@ -55,7 +55,9 @@ public class Service extends AbstractEntity {
     @Column(columnDefinition = "jsonb")
     private List<Task> flow;
 
-    private String config;
+    @Type(type = "jsonb")
+    @Column(columnDefinition = "jsonb")
+    private Config config;
 
     @OneToOne
     @JsonIgnore

@@ -21,6 +21,7 @@ import lombok.Data;
 import javax.inject.Singleton;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.graalvm.polyglot.HostAccess;
 
 // import org.eclipse.microprofile.config.inject.ConfigProperty;
 // import org.springframework.beans.factory.annotation.Value;
@@ -68,6 +69,7 @@ public class Property {
 
     @ConfigProperty(name = "kafka.bootstrap.servers")
     private String kafkaBootstrapServers;
+
 
     // @ConfigProperty(name = "spring.rabbitmq.host")
     // private String rabbitHost;

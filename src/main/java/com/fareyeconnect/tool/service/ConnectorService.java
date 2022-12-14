@@ -1,11 +1,11 @@
 /**
  * ****************************************************************************
- *
+ * <p>
  * Copyright (c) 2022, FarEye and/or its affiliates. All rights
  * reserved.
  * ___________________________________________________________________________________
- *
- *
+ * <p>
+ * <p>
  * NOTICE: All information contained herein is, and remains the property of
  * FarEye and its suppliers,if any. The intellectual and technical concepts
  * contained herein are proprietary to FarEye. and its suppliers and
@@ -16,27 +16,40 @@
  */
 package com.fareyeconnect.tool.service;
 
-import java.util.Arrays;
-import javax.enterprise.context.ApplicationScoped;
-import javax.persistence.EntityNotFoundException;
-
 import com.fareyeconnect.config.PageRequest;
 import com.fareyeconnect.config.Paged;
+import com.fareyeconnect.config.security.GatewayUser;
 import com.fareyeconnect.constant.AppConstant;
+import com.fareyeconnect.tool.dto.ServiceKey;
 import com.fareyeconnect.tool.model.Connector;
-
+import com.fareyeconnect.tool.model.Service;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.PanacheQuery;
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
+import io.quarkus.redis.datasource.RedisDataSource;
+import io.quarkus.redis.datasource.keys.KeyCommands;
+import io.quarkus.redis.datasource.value.ValueCommands;
 import io.smallrye.mutiny.Uni;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.persistence.EntityNotFoundException;
+import java.util.Arrays;
+
 /**
- *
  * @author Baldeep Singh Kwatra
  * @since 24-Dec-2022, 7:03:58 PM
  */
 @ApplicationScoped
 public class ConnectorService {
+
+    private ValueCommands<ServiceKey, Service> serviceCommands;
+
+    private KeyCommands<ServiceKey> keyCommands;
+
+    public ConnectorService(RedisDataSource redisDataSource) {
+        keyCommands = redisDataSource.key(ServiceKey.class);
+        serviceCommands = redisDataSource.value(ServiceKey.class, Service.class);
+    }
 
     public Uni<?> get(String id) {
         return Connector.findById(id).onItem().ifNull().failWith(EntityNotFoundException::new);
@@ -61,7 +74,7 @@ public class ConnectorService {
     }
 
     @ReactiveTransactional
-    public Uni<Paged<Connector>> findAll(PageRequest pageRequest)  {
+    public Uni<Paged<Connector>> findAll(PageRequest pageRequest) {
         return new Paged<Connector>().toPage(Connector.findAll(pageRequest.toSort()).page(pageRequest.toPage()));
         // return new Paged<Connector>(Connector.findAll(pageRequest.toSort()).page(pageRequest.toPage()).list());
     }
@@ -70,40 +83,38 @@ public class ConnectorService {
         PanacheQuery<Connector> query = Connector.findAll(pageRequest.toSort()).page(pageRequest.toPage());
 
 
-
         Paged pagination = new Paged();
         pagination.setNumber(query.page().index);
         pagination.setSize(query.page().size);
-        
+
         // this.totalElements = query.count().await().atMost(Duration.ofSeconds(3));
         // this.totalPages = pageCount(totalElements, size);
         // this.content = Collections.unmodifiableList(query.list().await().atMost(Duration.ofSeconds(3)));
         // this.first = this.number == 0;
         // this.last = this.number == this.totalPages - 1;
         // this.numberOfElements = this.content.size();
-    // if (page != null && page >= 1) {
-    //   pagination.setPage(page);
-    //   page--;
-    // } else {
-    //   page = 0;
-    //   pagination.setPage(1);
-    // }
-    // if (page_size == null || page_size <= 0) {
-    //   page_size = 10;
-    // }
-    // pagination.setPageSize(page_size);
-    return query.list()
-        .map(
-            b -> {
-                pagination.setNumberOfElements(b.size());
-                pagination.setContent(b);
-                // pagination.setTotalElements(query.count().map(el->{return el;}));
-                ;
-            //   pagination.setTotalCount(b.size());
-            //   LOG.info("listBrands");
-              return  pagination;
-            });
-
+        // if (page != null && page >= 1) {
+        //   pagination.setPage(page);
+        //   page--;
+        // } else {
+        //   page = 0;
+        //   pagination.setPage(1);
+        // }
+        // if (page_size == null || page_size <= 0) {
+        //   page_size = 10;
+        // }
+        // pagination.setPageSize(page_size);
+        return query.list()
+                .map(
+                        b -> {
+                            pagination.setNumberOfElements(b.size());
+                            pagination.setContent(b);
+                            // pagination.setTotalElements(query.count().map(el->{return el;}));
+                            ;
+                            //   pagination.setTotalCount(b.size());
+                            //   LOG.info("listBrands");
+                            return pagination;
+                        });
 
 
         // query.=
@@ -116,8 +127,8 @@ public class ConnectorService {
         //               new BrandResponseList(new Metadata("success", 200, "ok"), b, pagination))
         //           .build();
         //     });
-        
-        
+
+
         // return query.list().onItem(). transform(response -> {
         //     Paged<Connector> paged = new Paged<Connector>();
         //     paged.number = query.page().index;
@@ -131,5 +142,15 @@ public class ConnectorService {
 
         //     return paged;
         // });
+    }
+
+    public Service getService(String connectorCode, String serviceCode) {
+        ServiceKey serviceKey = new ServiceKey(connectorCode, serviceCode, "1");
+        return serviceCommands.get(serviceKey);
+    }
+
+    public void putService(Service service) {
+        ServiceKey serviceKey = new ServiceKey("test", "test", "1");
+        serviceCommands.set(serviceKey, service);
     }
 }
