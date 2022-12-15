@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS connector (
     notes varchar(2048) NULL,
     "name" varchar(255) NOT NULL,
     code varchar(100) NULL,
+    "version" INT4 NOT NULL,
+    status VARCHAR(128),
+    shared BOOLEAN DEFAULT FALSE,
     CONSTRAINT uk__connector_code UNIQUE ("code", "created_by_org"),
     CONSTRAINT pk_connector PRIMARY KEY (id)
 );
@@ -31,8 +34,11 @@ CREATE TABLE IF NOT EXISTS "service" (
     notes varchar(2048) NULL,
     "name" varchar(255) NOT NULL,
     code varchar(100) NULL,
-    published boolean DEFAULT false,
-    node jsonb,
+    category VARCHAR(128),
+    status varchar(128),
+    config JSONB,
+    flow JSONB,
+    trigger VARCHAR(128),
     "version" int4 NOT NULL DEFAULT 0,
     CONSTRAINT uk_service_code UNIQUE ("code", "created_by_org"),
     CONSTRAINT pk_service PRIMARY KEY (id)
