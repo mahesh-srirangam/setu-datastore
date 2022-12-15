@@ -34,6 +34,11 @@ public final class AppConstant {
     public static final String COMMA = ",";
     public static final String QUESTION_MARK = "?";
 
+    public static final String UNDERSCORE="_";
+
+    public static final String PARSER_PACKAGE="com.fareyeconnect.tool.parser.";
+    public static final String PARSER="Parser";
+
     public enum Language {
         JS("js"), PYTHON("python"), RUBY("ruby"), R("R"),LLVM("llvm");
 
@@ -109,9 +114,9 @@ public final class AppConstant {
         private static final String FUNC_UTIL_DOC = "All utility functions can be accessed with fu.functionName() eg fu.getDate(); in system task";
         public static final String FUNC_KAFKA = "fk";
         private static final String FUNC_KAFKA_DOC = "All kafka helper function can be accessed with fk.functionname() eg fk.pushStatusUpdate(); in system task";
-        public static final String VARIABLE = "VARIABLE";
+        public static final String VARIABLE = "variable";
         private static final String VARIABLE_DOC = "All variables can be accessed with VARIABLE.key_name eg VARIABLE.name";
-        public static final String PROPERTY = "PROPERTY";
+        public static final String PROPERTY = "prop";
         private static final String PROPERTY_DOC = "All properties on config server can be accessed with PROPERTY.get['key']";
 
     }

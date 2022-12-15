@@ -11,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.xml.stream.XMLStreamException;
 import java.util.concurrent.ExecutionException;
 
 @Path("/")
@@ -24,7 +25,7 @@ public class ServiceExecutorController {
 
     @Path("{version}/{connectorCode}/{serviceCode}")
     @POST
-    public void serviceExecution(@RestPath String connectorCode, @RestPath String serviceCode, String request) throws JsonProcessingException, ExecutionException, InterruptedException {
+    public void serviceExecution(@RestPath String connectorCode, @RestPath String serviceCode, String request) throws JsonProcessingException, ExecutionException, InterruptedException, XMLStreamException, ClassNotFoundException {
         flowExecutionService.initiateFlowExecution(connectorCode, serviceCode, request);
     }
 

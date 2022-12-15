@@ -1,27 +1,32 @@
 package com.fareyeconnect.tool.service;
 
-import com.fareyeconnect.config.Property;
-import com.fareyeconnect.constant.AppConstant.ContextMember;
-import com.fareyeconnect.constant.AppConstant.Language;
+
 import com.fareyeconnect.exception.AppException;
 import com.fareyeconnect.service.VariableService;
+import com.fareyeconnect.tool.dto.Config;
 import com.fareyeconnect.tool.helpers.KafkaHelper;
 import com.fareyeconnect.tool.helpers.UtilHelper;
 import com.fareyeconnect.tool.model.Service;
+import com.fareyeconnect.tool.parser.Parser;
 import com.fareyeconnect.tool.task.Task;
+import com.fareyeconnect.util.BeanUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
-
+import io.quarkus.logging.Log;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.xml.stream.XMLStreamException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.fareyeconnect.constant.AppConstant.*;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 
 @ApplicationScoped
@@ -38,14 +43,14 @@ public class FlowExecutionService {
     VariableService variableService;
 
     @Inject
-    Property property;
+    PropertyService property;
 
 
-    public void initiateFlowExecution(String connectorCode, String serviceCode, String request) {
+    public void initiateFlowExecution(String connectorCode, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException {
         Service service = connectorService.getService(serviceCode, connectorCode);
         if (service == null)
             throw new AppException("Service code doesn't exist");
-
+        Object request = validateAndBuildRequest(service, requestBody);
         Language language = Language.JS;
         try (Context context = buildContext(language, request, null)) {
             executeFlow(context, service);
@@ -54,7 +59,7 @@ public class FlowExecutionService {
         }
     }
 
-    private Context buildContext(Language language, String request, String currentTask) {
+    private Context buildContext(Language language, Object request, String tempTaskVar) {
         HostAccess hostAccess = HostAccess.newBuilder()
                 .allowAccessAnnotatedBy(HostAccess.Export.class)
                 .build();
@@ -65,19 +70,24 @@ public class FlowExecutionService {
         bindings.putMember(ContextMember.REQUEST, request);
         bindings.putMember(ContextMember.RESPONSE, null);
         bindings.putMember(ContextMember.VARIABLE, null);
-        bindings.putMember(ContextMember.RESPONSE, null);
-        bindings.putMember(ContextMember.PROPERTY, property);
-        if (currentTask != null) {
-            bindings.putMember("temp_" + currentTask, null);
-            context.eval(language.toString(), "var temp_" + currentTask + "={}");
+        bindings.putMember(ContextMember.PROPERTY, property.getPropertyMap());
+        if (tempTaskVar != null) {
+            bindings.putMember(tempTaskVar, null);
+            context.eval(language.toString(), "var " + tempTaskVar + "={}");
         }
-        registerHelperMethods(bindings);
+        bindings.putMember(ContextMember.FUNC_UTIL, new UtilHelper());
+        bindings.putMember(ContextMember.FUNC_KAFKA, new KafkaHelper());
         return context;
     }
 
-    private void registerHelperMethods(Value value) {
-        value.putMember(ContextMember.FUNC_UTIL, new UtilHelper());
-        value.putMember(ContextMember.FUNC_KAFKA, new KafkaHelper());
+    private Object validateAndBuildRequest(Service service, String requestBody) throws ClassNotFoundException, XMLStreamException, JsonProcessingException {
+        Config config = service.getConfig();
+        String requestContentType = config.getRequestContentType();
+        if (requestContentType == null || requestContentType.isEmpty())
+            requestContentType = APPLICATION_JSON;
+        Class clazz = Class.forName(PARSER_PACKAGE + requestContentType + PARSER);
+        Parser parser = (Parser) BeanUtil.bean(clazz);
+        return parser.parse(config.getRequestSchema(), requestBody);
     }
 
     private void executeFlow(Context context, Service service) throws ExecutionException, InterruptedException, ClassNotFoundException, JsonProcessingException {
@@ -99,8 +109,8 @@ public class FlowExecutionService {
                 Map<String, Value> taskContextBindings = new HashMap<>();
                 for (Task task : taskList) {
                     CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
-                        Context taskContext = buildContext(Language.JS, "", task.getTaskNumber());
-                        String contextMember = "temp_" + task.getTaskNumber();
+                        String contextMember = ContextMember.TEMP + UNDERSCORE + task.getTaskNumber();
+                        Context taskContext = buildContext(Language.JS, "", contextMember);
                         task.execute(taskContext);
                         taskContextBindings.put(contextMember, taskContext.getBindings(Language.JS.toString()).getMember(contextMember));
                         nextTaskList.addAll(task.getNextTask());
@@ -116,7 +126,6 @@ public class FlowExecutionService {
             } else {
                 Task task = taskQueue.poll();
                 task.execute(context);
-                System.out.println("Executing task {}" + task.getTaskNumber());
                 if (task.getNextTask() != null)
                     task.getNextTask().forEach(nextTask -> {
                         if (!taskQueue.contains(flowMap.get(nextTask)))

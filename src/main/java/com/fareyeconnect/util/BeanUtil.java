@@ -18,6 +18,7 @@
 package com.fareyeconnect.util;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
 
 /**
