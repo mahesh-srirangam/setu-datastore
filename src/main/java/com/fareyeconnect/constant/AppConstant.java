@@ -34,6 +34,8 @@ public final class AppConstant {
     public static final String SPACE = " ";
     public static final String COMMA = ",";
     public static final String QUESTION_MARK = "?";
+
+    public static final String DEFAULT_REGION = "us-west-2";
     
 
     public enum ServiceCode {

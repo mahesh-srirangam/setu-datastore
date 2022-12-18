@@ -29,11 +29,21 @@ import javax.ws.rs.PathParam;
 import com.fareyeconnect.config.PageRequest;
 import com.fareyeconnect.config.Paged;
 import com.fareyeconnect.exception.AppException;
+import com.fareyeconnect.service.KafkaHelper;
+import com.fareyeconnect.service.UtilHelper;
 import com.fareyeconnect.tool.model.Connector;
 import com.fareyeconnect.tool.service.ConnectorService;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opentelemetry.api.internal.StringUtils;
 import io.smallrye.mutiny.Uni;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -45,6 +55,12 @@ public class ConnectorController {
 
     @Inject
     ConnectorService connectorService;
+
+    @Inject
+    KafkaHelper kafkaHelper;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     @GET
     @Path("/{id}")
@@ -80,4 +96,16 @@ public class ConnectorController {
     public Uni<Long> remove(String ids) {
         return connectorService.remove(ids);
     }
+
+    @GET
+    @Path("/helper")
+    public void hepler() throws IOException {
+        List<Object> msg = new ArrayList<>();
+        Map<String,String> map = new HashMap<>();
+        map.put("1","Hello");
+        String m = objectMapper.writeValueAsString(map);
+        msg.add(m);
+        kafkaHelper.sendBatch(null, msg, "int-fareye-test" );
+    }
+
 }

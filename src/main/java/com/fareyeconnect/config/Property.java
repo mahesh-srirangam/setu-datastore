@@ -20,6 +20,7 @@ import lombok.Data;
 
 import javax.inject.Singleton;
 
+import lombok.Value;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 // import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -66,8 +67,8 @@ public class Property {
     // @ConfigProperty(name = "app.schemaName")
     // private String dbSchema;
 
-    @ConfigProperty(name = "kafka.bootstrap.servers")
-    private String kafkaBootstrapServers;
+//    @ConfigProperty(name = "kafka.bootstrap.servers", defaultValue = "localhost:9092")
+//    private String kafkaBootstrapServers;
 
     // @ConfigProperty(name = "spring.rabbitmq.host")
     // private String rabbitHost;
@@ -117,8 +118,8 @@ public class Property {
     // @ConfigProperty(name = "quarkus.application.name")
     // private String appName;
 
-     @ConfigProperty(name = "spring.cloud.config.profile", defaultValue = "dev")
-     private String environment;
+//     @ConfigProperty(name = "spring.cloud.config.profile", defaultValue = "dev")
+//     private String environment;
 
     // @ConfigProperty(name = "fareye.inbound-request-topic")
     // private String inboundRequestTopic;
@@ -140,5 +141,17 @@ public class Property {
 
     // @ConfigProperty(name = "app-master.ratelimiter-url", defaultValue = "60")
     // private String ratelimiterURL;
+
+    @ConfigProperty(name="s3.accessKey", defaultValue = "")
+    private String s3AccessKey;
+
+    @ConfigProperty(name="s3.secret-key", defaultValue = "")
+    private String s3SecretKey;
+
+    @ConfigProperty(name = "s3.bucket-name", defaultValue = "")
+    private String s3BucketName;
+
+    @ConfigProperty(name = "s3.bucket-region", defaultValue = "")
+    private String s3BucketRegion;
 
 }
