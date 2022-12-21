@@ -154,4 +154,16 @@ public class Property {
     @ConfigProperty(name = "s3.bucket-region", defaultValue = "")
     private String s3BucketRegion;
 
+    @ConfigProperty(name="fareye.tracking-updates-topic", defaultValue = "")
+    private String trackingUpdatesTopic;
+
+    @ConfigProperty(name = "app-master.consumer-url", defaultValue = "")
+    private String consumerUrl;
+
+    @ConfigProperty(name="app-master.ffm-url", defaultValue = "")
+    private String ffmUrl;
+
+    @ConfigProperty(name="fareye.gps-updates-topic", defaultValue = "")
+    private String gpsUpdatesTopic;
+
 }

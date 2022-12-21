@@ -162,6 +162,20 @@ public class RestService {
     }
 
     /**
+     *
+     * @param endpoint
+     * @param method
+     * @param requestBody
+     * @param headers
+     * @param readTimeout
+     * @return
+     */
+    public ResponseDto invoke(String endpoint, HttpMethod method, Object requestBody,
+                              MultivaluedMap<String, String> headers, int readTimeout) {
+        return invoke(endpoint, method, requestBody, headers, null, readTimeout);
+    }
+
+    /**
      * Trigger the request with desired timeout
      *
      * @param endpoint
