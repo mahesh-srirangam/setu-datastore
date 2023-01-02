@@ -47,7 +47,7 @@ public class FlowExecutionService {
     PropertyService property;
 
 
-    public void initiateFlowExecution(String connectorCode, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException {
+    public void initiateFlowExecution(String connectorCode, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException, JAXBException {
         Service service = connectorService.getService(serviceCode, connectorCode);
         if (service == null)
             throw new AppException("Service code doesn't exist");

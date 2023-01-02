@@ -2,6 +2,7 @@ package com.fareyeconnect.tool.parser;
 
 import com.fareyeconnect.tool.dto.XmlSchema;
 import com.fareyeconnect.util.XMLUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.xml.bind.JAXBException;
@@ -19,9 +20,9 @@ public class XMLParser implements Parser {
     ObjectMapper objectMapper;
 
     @Override
-    public Object parse(String schema, String requestBody) throws XMLStreamException, JAXBException {
+    public Object parse(String schema, String requestBody) throws XMLStreamException, JAXBException, JsonProcessingException {
         List<XmlSchema> xmlSchemaList = objectMapper.readValue(schema, new TypeReference<List<XmlSchema>>() {
-        })
+        });
         return XMLUtils.jsonToXml(requestBody, xmlSchemaList);
     }
 }

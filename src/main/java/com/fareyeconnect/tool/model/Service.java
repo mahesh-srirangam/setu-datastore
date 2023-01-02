@@ -24,6 +24,7 @@ import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import io.smallrye.common.constraint.NotNull;
 import io.smallrye.mutiny.Uni;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -36,6 +37,7 @@ import java.util.List;
 /**
  * @author Baldeep Singh Kwatra
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)

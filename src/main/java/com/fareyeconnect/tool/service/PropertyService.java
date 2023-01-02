@@ -1,17 +1,11 @@
 package com.fareyeconnect.tool.service;
 
-import com.fareyeconnect.config.Property;
-import com.fareyeconnect.util.rest.ResponseDto;
 import com.fareyeconnect.util.rest.RestService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.handler.codec.http.HttpMethod;
 import io.quarkus.logging.Log;
-import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import lombok.Data;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -26,9 +20,6 @@ public class PropertyService {
     RestService restService;
 
     @Inject
-    Property property;
-
-    @Inject
     ObjectMapper objectMapper;
 
     LinkedHashMap<String, Object> propertyMap;
@@ -36,10 +27,10 @@ public class PropertyService {
     //@ConfigProperty(name = "property.url")
     private String configUrl;
 
-//    void onStart(@Observes StartupEvent ev) throws JsonProcessingException {
-//        Log.info("Fetching from property server ");
+    void onStart(@Observes StartupEvent ev) throws JsonProcessingException {
+        Log.info("Fetching from property server ");
 //        propertyMap = new LinkedHashMap<>();
 //        ResponseDto responseDto = restService.invoke(configUrl, HttpMethod.POST, null, null, null, 30);
 //        propertyMap = objectMapper.readValue(responseDto.getResponse(), new TypeReference<>() {});
-//    }
+    }
 }
