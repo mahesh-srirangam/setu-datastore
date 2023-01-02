@@ -44,6 +44,7 @@ public class RunFlyway {
         if (runMigration) {
             Flyway flyway = Flyway.configure()
                     .dataSource("jdbc:" + datasourceUrl, datasourceUsername, datasourcePassword).load();
+            flyway.repair();
             flyway.migrate();
         }
     }
