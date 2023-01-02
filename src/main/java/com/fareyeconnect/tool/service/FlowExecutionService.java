@@ -12,10 +12,11 @@ import com.fareyeconnect.tool.task.Task;
 import com.fareyeconnect.util.BeanUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.xml.bind.JAXBException;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
-import io.quarkus.logging.Log;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
@@ -80,12 +81,12 @@ public class FlowExecutionService {
         return context;
     }
 
-    private Object validateAndBuildRequest(Service service, String requestBody) throws ClassNotFoundException, XMLStreamException, JsonProcessingException {
+    private Object validateAndBuildRequest(Service service, String requestBody) throws ClassNotFoundException, XMLStreamException, JsonProcessingException, JAXBException {
         Config config = service.getConfig();
         String requestContentType = config.getRequestContentType();
         if (requestContentType == null || requestContentType.isEmpty())
             requestContentType = APPLICATION_JSON;
-        Class clazz = Class.forName(PARSER_PACKAGE + requestContentType + PARSER);
+        Class<?> clazz = Class.forName(PARSER_PACKAGE + requestContentType + PARSER);
         Parser parser = (Parser) BeanUtil.bean(clazz);
         return parser.parse(config.getRequestSchema(), requestBody);
     }
