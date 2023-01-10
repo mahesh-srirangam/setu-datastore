@@ -25,6 +25,10 @@ public class BaseQueueConfiguration {
     @Inject
     KafkaConfiguration kafkaConfiguration;
 
+    @Inject
+    RabbitMQConfiguration rabbitMQConfiguration;
+
+
     void onStartUp(@Observes StartupEvent start){
         LOGGER.info("onStart missing");
     }
@@ -35,6 +39,10 @@ public class BaseQueueConfiguration {
             ConfigValue s = ConfigProvider.getConfig().getConfigValue("implement.queue");
         if(s.getValue()!=null && s.getValue().equalsIgnoreCase("kafka")){
             kafkaConfiguration.init();
+        }
+
+        if(s.getValue()!=null && s.getValue().equalsIgnoreCase("rabbitmq")){
+            rabbitMQConfiguration.init();
         }
 
         try {
