@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import org.graalvm.polyglot.Context;
 
+import java.io.Serializable;
 import java.util.List;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", visible = true)
@@ -15,7 +16,7 @@ import java.util.List;
         @JsonSubTypes.Type(value = FileService.class, name = "FileServices"),
 })
 @Data
-public abstract class Task {
+public abstract class Task implements Serializable {
 
     private String taskNumber;
 

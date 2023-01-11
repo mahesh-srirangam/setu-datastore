@@ -19,7 +19,6 @@ package com.fareyeconnect.tool.model;
 import com.fareyeconnect.model.AbstractEntity;
 import com.fareyeconnect.tool.dto.Config;
 import com.fareyeconnect.tool.task.Task;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import io.smallrye.common.constraint.NotNull;
 import io.smallrye.mutiny.Uni;
@@ -30,7 +29,7 @@ import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
@@ -53,6 +52,12 @@ public class Service extends AbstractEntity {
 
     private int version;
 
+    private String category;
+
+    private String status;
+
+    private String trigger;
+
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb")
     private List<Task> flow;
@@ -61,12 +66,19 @@ public class Service extends AbstractEntity {
     @Column(columnDefinition = "jsonb")
     private Config config;
 
-    @OneToOne
-    @JsonIgnore
+    @ManyToOne
+    @NotNull
     private Connector connector;
 
     public static Uni<Service> findByCode(String serviceCode) {
         return find("code", serviceCode).firstResult();
     }
 
+    public static Uni<Service> findById(String id) {
+        return find("id", id).firstResult();
+    }
+
+    public static Uni<List<Service>> findByActive(String status) {
+        return list("status", status);
+    }
 }

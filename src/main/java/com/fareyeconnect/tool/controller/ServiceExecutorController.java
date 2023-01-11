@@ -4,6 +4,7 @@ package com.fareyeconnect.tool.controller;
 import com.fareyeconnect.tool.model.Service;
 import com.fareyeconnect.tool.service.ConnectorService;
 import com.fareyeconnect.tool.service.FlowExecutionService;
+import com.fareyeconnect.tool.service.ServicePublisherService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.xml.bind.JAXBException;
 import org.jboss.resteasy.reactive.RestPath;
@@ -27,13 +28,7 @@ public class ServiceExecutorController {
 
     @Path("{version}/{connectorCode}/{serviceCode}")
     @POST
-    public void serviceExecution(@RestPath String connectorCode, @RestPath String serviceCode, String request) throws JsonProcessingException, XMLStreamException, ClassNotFoundException, JAXBException {
+    public void serviceExecution(@RestPath String connectorCode, @RestPath String serviceCode, String request) throws JsonProcessingException, XMLStreamException, ClassNotFoundException, JAXBException, ExecutionException, InterruptedException {
         flowExecutionService.initiateFlowExecution(connectorCode, serviceCode, request);
-    }
-
-    @Path("publish")
-    @POST
-    public void test(Service service){
-        connectorService.putService(service);
     }
 }

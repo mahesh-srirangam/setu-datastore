@@ -22,17 +22,23 @@ import com.fareyeconnect.constant.AppConstant;
 import com.fareyeconnect.tool.model.Service;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
+import io.quarkus.logging.Log;
+import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.persistence.EntityNotFoundException;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Baldeep Singh Kwatra
  * @since 24-Dec-2022, 7:03:58 PM
  */
 @ApplicationScoped
+@Startup
 public class ServiceService {
 
     public Uni<?> get(String id) {
@@ -63,5 +69,13 @@ public class ServiceService {
 
     public Uni<Service> findByServiceCode(String serviceCode) {
         return Service.findByCode(serviceCode);
+    }
+
+    public Uni<List<Service>> findByActive(String status) {
+        return Service.findByActive(status);
+    }
+
+    public Uni<Service> findById(String serviceCode) {
+        return Service.findById(serviceCode);
     }
 }

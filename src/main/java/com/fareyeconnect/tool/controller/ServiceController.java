@@ -1,11 +1,11 @@
 /**
  * ****************************************************************************
- *
+ * <p>
  * Copyright (c) 2022, FarEye and/or its affiliates. All rights
  * reserved.
  * ___________________________________________________________________________________
- *
- *
+ * <p>
+ * <p>
  * NOTICE: All information contained herein is, and remains the property of
  * FaEye and its suppliers,if any. The intellectual and technical concepts
  * contained herein are proprietary to FarEye. and its suppliers and
@@ -16,27 +16,25 @@
  */
 package com.fareyeconnect.tool.controller;
 
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-
 import com.fareyeconnect.config.PageRequest;
 import com.fareyeconnect.config.Paged;
 import com.fareyeconnect.exception.AppException;
 import com.fareyeconnect.tool.model.Service;
+import com.fareyeconnect.tool.service.ServicePublisherService;
 import com.fareyeconnect.tool.service.ServiceService;
-
 import io.opentelemetry.api.internal.StringUtils;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.eventbus.EventBus;
+
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.ws.rs.*;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 /**
- *
  * @author Baldeep Singh Kwatra
  * @since 09-Dec-2022, 7:03:58 PM
  */
@@ -45,6 +43,9 @@ public class ServiceController {
 
     @Inject
     ServiceService serviceService;
+
+    @Inject
+    ServicePublisherService servicePublisherService;
 
     @GET
     @Path("/{id}")
@@ -55,8 +56,8 @@ public class ServiceController {
 
     @GET
     // @PreAuthorize("hasAuthority('VARIABLE_READ')")
-    public Uni<Paged<Service>> get(@BeanParam PageRequest pageRequest)  {
-    return serviceService.findAll(pageRequest);
+    public Uni<Paged<Service>> get(@BeanParam PageRequest pageRequest) {
+        return serviceService.findAll(pageRequest);
     }
 
     @POST
@@ -80,5 +81,18 @@ public class ServiceController {
     // @PreAuthorize("hasAuthority('VARIABLE_DELETE')")
     public Uni<Long> remove(String ids) {
         return serviceService.remove(ids);
+    }
+
+    @POST
+    @Path("/publish")
+    public Uni<Service> publish(@Valid Service service) throws ExecutionException, InterruptedException, TimeoutException {
+        servicePublisherService.publishService(service);
+        return serviceService.update(service);
+    }
+
+    @GET
+    @Path("get")
+    public CompletableFuture<Object> get() throws ExecutionException, InterruptedException {
+        return servicePublisherService.getAllCacheKeys();
     }
 }

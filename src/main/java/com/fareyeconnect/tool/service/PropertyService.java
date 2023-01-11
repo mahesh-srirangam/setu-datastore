@@ -4,6 +4,7 @@ import com.fareyeconnect.util.rest.RestService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.logging.Log;
+import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import lombok.Data;
 
@@ -12,7 +13,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.util.LinkedHashMap;
 
-//@Startup
+@Startup
 @Data
 @ApplicationScoped
 public class PropertyService {

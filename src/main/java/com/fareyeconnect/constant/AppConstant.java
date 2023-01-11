@@ -34,13 +34,13 @@ public final class AppConstant {
     public static final String COMMA = ",";
     public static final String QUESTION_MARK = "?";
 
-    public static final String UNDERSCORE="_";
+    public static final String UNDERSCORE = "_";
 
-    public static final String PARSER_PACKAGE="com.fareyeconnect.tool.parser.";
-    public static final String PARSER="Parser";
+    public static final String PARSER_PACKAGE = "com.fareyeconnect.tool.parser.";
+    public static final String PARSER = "Parser";
 
     public enum Language {
-        JS("js"), PYTHON("python"), RUBY("ruby"), R("R"),LLVM("llvm");
+        JS("js"), PYTHON("python"), RUBY("ruby"), R("R"), LLVM("llvm");
 
         private final String language;
 
@@ -51,6 +51,21 @@ public final class AppConstant {
         @Override
         public String toString() {
             return language;
+        }
+    }
+
+    public enum Status {
+        LIVE("live"), DEVELOPMENT("development"), REVIEW("ruby");
+
+        private final String status;
+
+        Status(final String text) {
+            this.status = text;
+        }
+
+        @Override
+        public String toString() {
+            return status;
         }
     }
 

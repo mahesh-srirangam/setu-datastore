@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS connector (
     "version" INT4 NOT NULL,
     status VARCHAR(128),
     shared BOOLEAN DEFAULT FALSE,
-    CONSTRAINT uk__connector_code UNIQUE ("code", "created_by_org"),
+    CONSTRAINT uk__connector_code UNIQUE ("code", "created_by_org","version"),
     CONSTRAINT pk_connector PRIMARY KEY (id)
 );
 
@@ -61,7 +61,8 @@ CREATE TABLE IF NOT EXISTS "service" (
     flow JSONB,
     trigger VARCHAR(128),
     "version" int4 NOT NULL DEFAULT 0,
-    CONSTRAINT uk_service_code UNIQUE ("code", "created_by_org"),
+    FOREIGN KEY (connector_id) REFERENCES connector(id),
+    CONSTRAINT uk_service_code UNIQUE ("code", "created_by_org","connector_id","version"),
     CONSTRAINT pk_service PRIMARY KEY (id)
 );
 

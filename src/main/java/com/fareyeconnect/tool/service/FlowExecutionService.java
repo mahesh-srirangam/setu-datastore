@@ -46,9 +46,22 @@ public class FlowExecutionService {
     @Inject
     PropertyService property;
 
+    @Inject
+    ServicePublisherService publisherService;
 
-    public void initiateFlowExecution(String connectorCode, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException, JAXBException {
-        Service service = connectorService.getService(serviceCode, connectorCode);
+
+    /**
+     *
+     * @param connectorCode
+     * @param serviceCode
+     * @param requestBody
+     * @throws XMLStreamException
+     * @throws ClassNotFoundException
+     * @throws JsonProcessingException
+     * @throws JAXBException
+     */
+    public void initiateFlowExecution(String connectorCode, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException, JAXBException, ExecutionException, InterruptedException {
+        Service service = null;//publisherService.getService(serviceCode, connectorCode).subscribeAsCompletionStage().get();
         if (service == null)
             throw new AppException("Service code doesn't exist");
         Object request = validateAndBuildRequest(service, requestBody);
@@ -60,6 +73,13 @@ public class FlowExecutionService {
         }
     }
 
+    /**
+     *
+     * @param language
+     * @param request
+     * @param tempTaskVar
+     * @return
+     */
     private Context buildContext(Language language, Object request, String tempTaskVar) {
         HostAccess hostAccess = HostAccess.newBuilder()
                 .allowAccessAnnotatedBy(HostAccess.Export.class)
@@ -81,6 +101,16 @@ public class FlowExecutionService {
         return context;
     }
 
+    /**
+     *
+     * @param service
+     * @param requestBody
+     * @return
+     * @throws ClassNotFoundException
+     * @throws XMLStreamException
+     * @throws JsonProcessingException
+     * @throws JAXBException
+     */
     private Object validateAndBuildRequest(Service service, String requestBody) throws ClassNotFoundException, XMLStreamException, JsonProcessingException, JAXBException {
         Config config = service.getConfig();
         String requestContentType = config.getRequestContentType();
@@ -91,12 +121,29 @@ public class FlowExecutionService {
         return parser.parse(config.getRequestSchema(), requestBody);
     }
 
+    /**
+     *
+     * @param context
+     * @param service
+     * @throws ExecutionException
+     * @throws InterruptedException
+     * @throws ClassNotFoundException
+     * @throws JsonProcessingException
+     */
     private void executeFlow(Context context, Service service) throws ExecutionException, InterruptedException, ClassNotFoundException, JsonProcessingException {
         String startTaskNumber = "1";
         Map<String, Task> flowMap = service.getFlow().stream().collect(Collectors.toMap(Task::getTaskNumber, Function.identity()));
         executeFlow(startTaskNumber, flowMap, context);
     }
 
+    /**
+     *
+     * @param startTask
+     * @param flowMap
+     * @param context
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public void executeFlow(String startTask, Map<String, Task> flowMap, Context context) throws ExecutionException, InterruptedException {
         Queue<Task> taskQueue = new LinkedList<>();
         taskQueue.add(flowMap.get(startTask));

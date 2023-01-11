@@ -26,9 +26,6 @@ import com.fareyeconnect.tool.model.Service;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.PanacheQuery;
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
-import io.quarkus.redis.datasource.RedisDataSource;
-import io.quarkus.redis.datasource.keys.KeyCommands;
-import io.quarkus.redis.datasource.value.ValueCommands;
 import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -41,15 +38,6 @@ import java.util.Arrays;
  */
 @ApplicationScoped
 public class ConnectorService {
-
-    private ValueCommands<ServiceKey, Service> serviceCommands;
-
-    private KeyCommands<ServiceKey> keyCommands;
-
-    public ConnectorService(RedisDataSource redisDataSource) {
-        keyCommands = redisDataSource.key(ServiceKey.class);
-        serviceCommands = redisDataSource.value(ServiceKey.class, Service.class);
-    }
 
     public Uni<?> get(String id) {
         return Connector.findById(id).onItem().ifNull().failWith(EntityNotFoundException::new);
@@ -142,15 +130,5 @@ public class ConnectorService {
 
         //     return paged;
         // });
-    }
-
-    public Service getService(String connectorCode, String serviceCode) {
-        ServiceKey serviceKey = new ServiceKey(connectorCode, serviceCode, "1");
-        return serviceCommands.get(serviceKey);
-    }
-
-    public void putService(Service service) {
-        ServiceKey serviceKey = new ServiceKey("test", "test", "1");
-        serviceCommands.set(serviceKey, service);
     }
 }

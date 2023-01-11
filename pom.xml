@@ -109,6 +109,14 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-redis-client</artifactId>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/io.vertx/vertx-redis-client -->
+<!--    <dependency>-->
+<!--      <groupId>io.vertx</groupId>-->
+<!--      <artifactId>vertx-redis-client</artifactId>-->
+<!--      <version>4.3.7</version>-->
+<!--    </dependency>-->
+
+    <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-spring-cloud-config-client</artifactId>
@@ -147,6 +155,10 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-scheduler</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-cache</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
