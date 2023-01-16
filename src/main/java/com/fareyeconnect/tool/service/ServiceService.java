@@ -19,16 +19,13 @@ package com.fareyeconnect.tool.service;
 import com.fareyeconnect.config.PageRequest;
 import com.fareyeconnect.config.Paged;
 import com.fareyeconnect.constant.AppConstant;
+import com.fareyeconnect.tool.model.Connector;
 import com.fareyeconnect.tool.model.Service;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
-import io.quarkus.logging.Log;
-import io.quarkus.runtime.Startup;
-import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.persistence.EntityNotFoundException;
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +35,6 @@ import java.util.List;
  * @since 24-Dec-2022, 7:03:58 PM
  */
 @ApplicationScoped
-@Startup
 public class ServiceService {
 
     public Uni<?> get(String id) {
@@ -77,5 +73,9 @@ public class ServiceService {
 
     public Uni<Service> findById(String serviceCode) {
         return Service.findById(serviceCode);
+    }
+
+    public Uni<Service> findLiveService(Connector connector, String serviceCode, String status) {
+        return Service.findByConnectorServiceCodeStatus(connector, serviceCode, status);
     }
 }

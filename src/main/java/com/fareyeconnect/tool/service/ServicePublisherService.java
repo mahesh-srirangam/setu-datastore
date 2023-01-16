@@ -21,29 +21,32 @@
 
 package com.fareyeconnect.tool.service;
 
+import com.fareyeconnect.config.security.GatewayUser;
+import com.fareyeconnect.constant.AppConstant;
 import com.fareyeconnect.tool.dto.ServiceKey;
 import com.fareyeconnect.tool.model.Service;
-import io.quarkus.arc.Priority;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheName;
 import io.quarkus.cache.CaffeineCache;
+import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
 import io.quarkus.logging.Log;
 import io.quarkus.redis.datasource.ReactiveRedisDataSource;
+import io.quarkus.redis.datasource.keys.ReactiveKeyCommands;
 import io.quarkus.redis.datasource.pubsub.ReactivePubSubCommands;
 import io.quarkus.redis.datasource.value.ReactiveValueCommands;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Uni;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
-@ApplicationScoped
+/**
+ * @author Hemanth Reddy
+ * @since 16/01/23
+ */
 @Startup
 public class ServicePublisherService implements Consumer<Service> {
 
@@ -58,36 +61,21 @@ public class ServicePublisherService implements Consumer<Service> {
 
     private final ReactivePubSubCommands<Service> pubSubCommands;
 
+    private final ReactiveKeyCommands<ServiceKey> keyCommands;
+
     public ServicePublisherService(ReactiveRedisDataSource reactiveRedisDataSource) {
+        keyCommands = reactiveRedisDataSource.key(ServiceKey.class);
         serviceCommands = reactiveRedisDataSource.value(ServiceKey.class, Service.class);
         pubSubCommands = reactiveRedisDataSource.pubsub(Service.class);
         pubSubCommands.subscribe("service", this).subscribe().with(consumer -> Log.info("Successfully subscribed "));
     }
 
-    void onStart(@Observes StartupEvent event)  {
-        Log.infof("Fetching service start");
-        //List<Service> serviceList = serviceService.findByActive("live").subscribeAsCompletionStage().get();
-        serviceService.findByActive("live").subscribe().with(serviceList1 -> {
-            Log.info("Service List size " + serviceList1.size());
-            serviceList1.forEach(service -> cacheService(service).subscribe().with(done -> Log.info("Cached")));
-        });
-
-//        serviceService.findByActive("live").onItem().invoke(serviceList -> {
-//                    Log.info("Size " + serviceList.size());
-//                    serviceList.forEach(service -> cacheService(service).subscribe().with(done -> Log.info("Cached...")));
-//                }
-////                serviceList -> {
-////                    serviceList.forEach(service -> cacheService(service).subscribe().with(
-////                            message ->
-////                            {
-////                                Log.info("Service published " + service);
-////                            },
-////                            failure -> Log.error("Failed to publish service " + service))
-////                    );
-////                },
-////                failure -> Log.error("Failed to fetch service " + failure)
-//
-//        ).subscribe().with(test -> Log.info("Tets"));
+    @ReactiveTransactional
+    void onStart(@Observes StartupEvent event) {
+        Log.info("Publishing services start");
+        serviceService.findByActive("live").subscribe().with(serviceList ->
+                serviceList.forEach(service -> cacheService(service).subscribe()
+                        .with(done -> Log.info("Number of services cached " + serviceList.size()))));
     }
 
     public void publishService(Service service) {
@@ -108,21 +96,55 @@ public class ServicePublisherService implements Consumer<Service> {
 
     public Uni<Void> cacheService(Service service) {
         Log.infof("Caching service " + service);
-        Uni<String> uniCache = Uni.createFrom().item(publishLocalCache(service));
-        uniCache.subscribe().with(done -> Log.info("Published"));
         ServiceKey serviceKey = new ServiceKey(service.getConnector().getCode(), service.getCode(), service.getCreatedByOrg());
-        return serviceCommands.set(serviceKey, service);
-
+        Uni<String> uniLocalCache = Uni.createFrom().item(publishLocalCache(serviceKey, service));
+        Uni<Void> uniRedisCache = serviceCommands.set(serviceKey, service);
+        Uni.combine().all().unis(uniLocalCache, uniRedisCache).asTuple().subscribe().with(tuple -> {
+            Log.info("Local cache publish response " + tuple.getItem1());
+            Log.info("Publish Response " + tuple.getItem2());
+        }, error -> Log.error("Error while caching service " + error.getMessage()));
+        return Uni.createFrom().voidItem();
     }
 
-    public String publishLocalCache(Service service) {
-        ServiceKey serviceKey = new ServiceKey(service.getConnector().getCode(), service.getCode(), service.getCreatedByOrg());
+    private Uni<Service> invalidateDeployedVersion(Service service) {
+        ServiceKey serviceKey = new ServiceKey(service.getConnector().getCode(), service.getCode(), GatewayUser.getUser().getOrganizationId());
+        cache.as(CaffeineCache.class).invalidate(serviceKey);
+        keyCommands.del(serviceKey);
+        return Uni.createFrom().item(service);
+    }
+
+    public String publishLocalCache(ServiceKey serviceKey, Service service) {
         cache.as(CaffeineCache.class).put(serviceKey, CompletableFuture.completedFuture(service));
         return "Service Published " + service.getCode();
     }
 
-    public CompletableFuture<Object> getAllCacheKeys() {
+    private CompletableFuture<Object> getAllCacheKeys() {
         ServiceKey serviceKey = new ServiceKey("2go", "tracking-pull", "1");
+        return cache.as(CaffeineCache.class).getIfPresent(serviceKey);
+    }
+
+
+    @ReactiveTransactional
+    public Uni<Object> publish(Service service) {
+        Uni<Service> publishedService = serviceService.findLiveService(service.getConnector(), service.getCode(), AppConstant.Status.LIVE.toString());
+        return publishedService.onItem().transformToUni(item -> {
+            if (item == null) {
+                Log.info("No version for this service code is in live state " + service.getCode());
+                return serviceService.update(service).onItem().transformToUni(this::cacheService);
+            } else {
+                Log.info("Published version available " + item.getCode() + " Version:: " + item.getVersion());
+                item.setStatus(AppConstant.Status.STABLE.toString());
+                return serviceService.update(item).onItem().transformToUni(updatedItem ->
+                        serviceService.update(service).onItem().transformToUni(
+                                liveVersion -> invalidateDeployedVersion(service).
+                                        onItem().transformToUni(delCacheResult -> cacheService(service))
+                        ));
+            }
+        });
+    }
+
+    public CompletableFuture<Service> get(Service service) {
+        ServiceKey serviceKey = new ServiceKey(service.getConnector().getCode(), service.getCode(), null);
         return cache.as(CaffeineCache.class).getIfPresent(serviceKey);
     }
 }

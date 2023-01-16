@@ -20,6 +20,7 @@ import com.fareyeconnect.model.AbstractEntity;
 import com.fareyeconnect.tool.dto.Config;
 import com.fareyeconnect.tool.task.Task;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import io.quarkus.panache.common.Parameters;
 import io.smallrye.common.constraint.NotNull;
 import io.smallrye.mutiny.Uni;
 import lombok.Data;
@@ -80,5 +81,10 @@ public class Service extends AbstractEntity {
 
     public static Uni<List<Service>> findByActive(String status) {
         return list("status", status);
+    }
+
+    public static Uni<Service> findByConnectorServiceCodeStatus(Connector connector, String serviceCode, String status) {
+        return find("connector= :connector and code= :code and status= :status", Parameters.with("connector", connector).
+                and("code", serviceCode).and("status", status)).firstResult();
     }
 }

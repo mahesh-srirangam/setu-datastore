@@ -24,15 +24,10 @@ import com.fareyeconnect.tool.service.ServicePublisherService;
 import com.fareyeconnect.tool.service.ServiceService;
 import io.opentelemetry.api.internal.StringUtils;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.eventbus.EventBus;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Baldeep Singh Kwatra
@@ -85,14 +80,13 @@ public class ServiceController {
 
     @POST
     @Path("/publish")
-    public Uni<Service> publish(@Valid Service service) throws ExecutionException, InterruptedException, TimeoutException {
-        servicePublisherService.publishService(service);
-        return serviceService.update(service);
+    public Uni<Object> publish(@Valid Service service) {
+        return servicePublisherService.publish(service);
     }
 
     @GET
-    @Path("get")
-    public CompletableFuture<Object> get() throws ExecutionException, InterruptedException {
-        return servicePublisherService.getAllCacheKeys();
+    @Path("/daffa")
+    public Object get(Service service){
+        return servicePublisherService.get(service);
     }
 }

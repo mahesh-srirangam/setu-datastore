@@ -1,3 +1,24 @@
+/*
+ *
+ *  * *
+ *  *  * ****************************************************************************
+ *  *  *
+ *  *  * Copyright (c) 2023, FarEye and/or its affiliates. All rights
+ *  *  * reserved.
+ *  *  * ___________________________________________________________________________________
+ *  *  *
+ *  *  *
+ *  *  * NOTICE: All information contained herein is, and remains the property of
+ *  *  * FaEye and its suppliers,if any. The intellectual and technical concepts
+ *  *  * contained herein are proprietary to FarEye. and its suppliers and
+ *  *  * may be covered by us and Foreign Patents, patents in process, and are
+ *  *  * protected by trade secret or copyright law. Dissemination of this information
+ *  *  * or reproduction of this material is strictly forbidden unless prior written
+ *  *  * permission is obtained from FarEye
+ *  *
+ *
+ */
+
 package com.fareyeconnect.tool.service;
 
 
@@ -29,7 +50,10 @@ import java.util.stream.Collectors;
 import static com.fareyeconnect.constant.AppConstant.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-
+/**
+ * @author Hemanth Reddy
+ * @since 16/01/23
+ */
 @ApplicationScoped
 public class FlowExecutionService {
 
@@ -61,7 +85,7 @@ public class FlowExecutionService {
      * @throws JAXBException
      */
     public void initiateFlowExecution(String connectorCode, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException, JAXBException, ExecutionException, InterruptedException {
-        Service service = null;//publisherService.getService(serviceCode, connectorCode).subscribeAsCompletionStage().get();
+        Service service = null;//publisherService.getService(serviceCode, connectorCode);//.subscribeAsCompletionStage().get();
         if (service == null)
             throw new AppException("Service code doesn't exist");
         Object request = validateAndBuildRequest(service, requestBody);

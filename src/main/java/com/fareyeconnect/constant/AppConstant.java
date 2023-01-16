@@ -55,7 +55,7 @@ public final class AppConstant {
     }
 
     public enum Status {
-        LIVE("live"), DEVELOPMENT("development"), REVIEW("review");
+        LIVE("live"), DEVELOPMENT("development"), REVIEW("review"),STABLE("stable");
 
         private final String status;
 
