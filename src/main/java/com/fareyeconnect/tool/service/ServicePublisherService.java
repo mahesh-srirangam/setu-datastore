@@ -69,6 +69,10 @@ public class ServicePublisherService implements Consumer<Service> {
 
     private final ReactiveKeyCommands<ServiceKey> keyCommands;
 
+    /**
+     * Initiate the redis key,value commands instances
+     * @param reactiveRedisDataSource
+     */
     public ServicePublisherService(ReactiveRedisDataSource reactiveRedisDataSource) {
         keyCommands = reactiveRedisDataSource.key(ServiceKey.class);
         serviceCommands = reactiveRedisDataSource.value(ServiceKey.class, Service.class);
@@ -76,6 +80,10 @@ public class ServicePublisherService implements Consumer<Service> {
         pubSubCommands.subscribe("service", this).subscribe().with(consumer -> Log.info("Successfully subscribed "));
     }
 
+    /**
+     * Fetch all live services and cache these services to redis and local cache
+     * @param event
+     */
     @ReactiveTransactional
     void onStart(@Observes StartupEvent event) {
         Log.info("Publishing services start");
@@ -84,6 +92,10 @@ public class ServicePublisherService implements Consumer<Service> {
                         .with(done -> Log.info("Number of services cached " + serviceList.size()))));
     }
 
+    /**
+     * Consume message pub/sub on publish service event
+     * @param service the input argument
+     */
     @Override
     public void accept(Service service) {
         Log.info("Received message " + service);
@@ -91,6 +103,15 @@ public class ServicePublisherService implements Consumer<Service> {
         cache.as(CaffeineCache.class).put(serviceKey, CompletableFuture.completedFuture(service));
     }
 
+    /**
+     * Cache services on startup
+     *
+     * Build service key
+     * cache service to local instance cache
+     * cache service to redi cache
+     * @param service
+     * @return
+     */
     public Uni<Void> cacheServicesOnStartup(Service service) {
         Log.infof("Caching service " + service);
         ServiceKey serviceKey = buildServiceKey(service, service.getCreatedByOrg());
@@ -103,6 +124,13 @@ public class ServicePublisherService implements Consumer<Service> {
         return Uni.createFrom().voidItem();
     }
 
+    /**
+     * Cache services on publish event
+     * Cache service to redis
+     * Publish message to channel for publishing to local cache
+     * @param service
+     * @return
+     */
     private Uni<Void> publishServiceOnEvent(Service service) {
         ServiceKey serviceKey = buildServiceKey(service, GatewayUser.getUser().getOrganizationId());
         Uni<Void> uniRedisCache = serviceCommands.set(serviceKey, service);
@@ -110,6 +138,11 @@ public class ServicePublisherService implements Consumer<Service> {
         return Uni.combine().all().unis(uniRedisCache, publishServiceToRedis).discardItems();
     }
 
+    /**
+     * Upon receiving the publish event invalidate the older service
+     * @param service
+     * @return
+     */
     private Uni<Void> invalidateDeployedVersion(Service service) {
         ServiceKey serviceKey = buildServiceKey(service, GatewayUser.getUser().getOrganizationId());
         Uni<Void> delLocalCache = cache.as(CaffeineCache.class).invalidate(serviceKey);
@@ -117,18 +150,34 @@ public class ServicePublisherService implements Consumer<Service> {
         return Uni.combine().all().unis(delRedisCache, delLocalCache).discardItems();
     }
 
+    /**
+     * Publish service to local cache
+     * @param serviceKey
+     * @param service
+     * @return
+     */
     public String publishLocalCache(ServiceKey serviceKey, Service service) {
         cache.as(CaffeineCache.class).put(serviceKey, CompletableFuture.completedFuture(service));
         return "Service Published " + service.getCode();
     }
 
 
+    /**
+     * Publish the service
+     *
+     * Make version live in database
+     * If a live version already exists change the status to stable and live the new version in database
+     * Invalidate the cache
+     * Publish service to cache
+     * @param service
+     * @return
+     */
     @ReactiveTransactional
     public Uni<Object> publish(Service service) {
         Uni<Service> publishedService = serviceService.findLiveService(service.getConnector(), service.getCode(), AppConstant.Status.LIVE.toString());
         return publishedService.onItem().transformToUni(item -> {
             if (item == null) {
-                Log.info("No version for this service code is in live state " + service.getCode());
+                Log.info("No version of this service code is in live state " + service.getCode());
                 return serviceService.update(service).onItem().transformToUni(this::publishServiceOnEvent);
             } else {
                 Log.info("Published version available " + item.getCode() + " Version:: " + item.getVersion());
@@ -146,6 +195,19 @@ public class ServicePublisherService implements Consumer<Service> {
         });
     }
 
+    /**
+     * When a service execution request is received
+     * 1) Check instance cache
+     * 2) If service is not found  in instance cache query in redis cache
+     * 3) If not found in redis cache fetch live version from database
+     * Else throw exception
+     * @param connectorCode
+     * @param connectorVersion
+     * @param serviceCode
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public Uni<Service> fetchLiveVersion(String connectorCode, int connectorVersion, String serviceCode) throws ExecutionException, InterruptedException {
         Log.info(connectorCode + " " + serviceCode);
         String orgId = GatewayUser.getUser().getOrganizationId();
@@ -170,17 +232,12 @@ public class ServicePublisherService implements Consumer<Service> {
                                 }
                             });
                 } else {
-                    Log.info("Fetching service from redis cache ");
+                    Log.info("Service from redis cache "+item);
                     return Uni.createFrom().item(item);
                 }
             });
         } else return Uni.createFrom().item(liveService.get());
     }
-
-//    public CompletableFuture<Service> get(Service service) throws ExecutionException, InterruptedException {
-//        ServiceKey serviceKey = new ServiceKey(service.getConnector().getCode(), service.getCode(), null);
-//        return cache.as(CaffeineCache.class).getIfPresent(serviceKey);
-//    }
 
     private ServiceKey buildServiceKey(Service service, String organizationId) {
         return ServiceKey.builder()

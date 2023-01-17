@@ -25,6 +25,7 @@ package com.fareyeconnect.tool.service;
 import com.fareyeconnect.exception.AppException;
 import com.fareyeconnect.service.VariableService;
 import com.fareyeconnect.tool.dto.Config;
+import com.fareyeconnect.tool.dto.ServiceKey;
 import com.fareyeconnect.tool.helpers.KafkaHelper;
 import com.fareyeconnect.tool.helpers.UtilHelper;
 import com.fareyeconnect.tool.model.Service;
@@ -32,16 +33,19 @@ import com.fareyeconnect.tool.parser.Parser;
 import com.fareyeconnect.tool.task.Task;
 import com.fareyeconnect.util.BeanUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.xml.bind.JAXBException;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
+import org.jboss.resteasy.reactive.RestResponse;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.core.Response;
+import javax.json.Json;
 import javax.xml.stream.XMLStreamException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -77,6 +81,12 @@ public class FlowExecutionService {
 
 
     /**
+     * Below service fetches the service and execute the service
+     *
+     * Validate request
+     * Build graal engine context
+     * Execute flow
+     * Parse response
      * @param connectorCode
      * @param serviceCode
      * @param requestBody
@@ -85,21 +95,23 @@ public class FlowExecutionService {
      * @throws JsonProcessingException
      * @throws JAXBException
      */
-    public Uni<Response> initiateFlowExecution(String connectorCode, int connectorVersion, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException, JAXBException, ExecutionException, InterruptedException {
+    public Uni<RestResponse<String>> initiateFlowExecution(String connectorCode, int connectorVersion, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException, JAXBException, ExecutionException, InterruptedException {
         Uni<Service> serviceUni = servicePublisherService.fetchLiveVersion(connectorCode, connectorVersion, serviceCode);
         return serviceUni.onItem().transformToUni(service -> {
             if (service == null)
-                throw new AppException("Service code doesn't exist");
+                throw new AppException("Service you are trying to excute doesn't exist");
             else {
                 try {
                     Object request = validateAndBuildRequest(service, requestBody);
                     Language language = Language.JS;
                     try (Context context = buildContext(language, request, null)) {
                         executeFlow(context, service);
+                        RestResponse<String> response = extractResponse(context, language);
+                        Log.info("Response " + response);
+                        return Uni.createFrom().item(response);
                     } catch (Exception e) {
                         throw new AppException("Flow execution failed with error " + e.getMessage());
                     }
-                    return Uni.createFrom().item(null);
                 } catch (Exception e) {
                     throw new AppException(e.getMessage());
                 }
@@ -108,6 +120,7 @@ public class FlowExecutionService {
     }
 
     /**
+     * Build graal engine based on the Language provided
      * @param language
      * @param request
      * @param tempTaskVar
@@ -124,6 +137,7 @@ public class FlowExecutionService {
         bindings.putMember(ContextMember.REQUEST, request);
         bindings.putMember(ContextMember.RESPONSE, null);
         bindings.putMember(ContextMember.VARIABLE, null);
+        bindings.putMember(ContextMember.STATUS, null);
         bindings.putMember(ContextMember.PROPERTY, property.getPropertyMap());
         if (tempTaskVar != null) {
             bindings.putMember(tempTaskVar, null);
@@ -135,6 +149,22 @@ public class FlowExecutionService {
     }
 
     /**
+     * Extract final response from the engine after service execution
+     * @param context
+     * @param language
+     * @return
+     * @throws JsonProcessingException
+     */
+    private RestResponse<String> extractResponse(Context context, Language language) throws JsonProcessingException {
+        Value contextBindings = context.getBindings(language.toString());
+        Value response = contextBindings.getMember(ContextMember.RESPONSE);
+        Value statusCode = contextBindings.getMember(ContextMember.STATUS);
+        Map responseNode =response.as(Map.class);
+        return RestResponse.status(RestResponse.Status.fromStatusCode(statusCode.asInt()), objectMapper.writeValueAsString(responseNode));
+    }
+
+    /**
+     * Validate and parse the upcoming request based on config details
      * @param service
      * @param requestBody
      * @return
@@ -145,7 +175,11 @@ public class FlowExecutionService {
      */
     private Object validateAndBuildRequest(Service service, String requestBody) throws ClassNotFoundException, XMLStreamException, JsonProcessingException, JAXBException {
         Config config = service.getConfig();
-        String requestContentType = config.getRequestContentType();
+        String requestContentType;
+        if (config == null) {
+            throw new AppException("Schema config details not found");
+        }
+        requestContentType = config.getRequestContentType();
         if (requestContentType == null || requestContentType.isEmpty())
             requestContentType = APPLICATION_JSON;
         Class<?> clazz = Class.forName(PARSER_PACKAGE + requestContentType + PARSER);
@@ -154,6 +188,7 @@ public class FlowExecutionService {
     }
 
     /**
+     * Once the context and service are available, start the flow execution with start task
      * @param context
      * @param service
      * @throws ExecutionException
@@ -168,6 +203,10 @@ public class FlowExecutionService {
     }
 
     /**
+     * Start the flow execution
+     * In case of parallel tasks schedule the task with CF
+     * Merge the results and put the result into script engine
+     *
      * @param startTask
      * @param flowMap
      * @param context

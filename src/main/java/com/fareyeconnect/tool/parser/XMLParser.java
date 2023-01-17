@@ -10,7 +10,6 @@ import jakarta.xml.bind.JAXBException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
-import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
@@ -21,7 +20,7 @@ public class XMLParser implements Parser {
 
     @Override
     public Object parse(String schema, String requestBody) throws XMLStreamException, JAXBException, JsonProcessingException {
-        List<XmlSchema> xmlSchemaList = objectMapper.readValue(schema, new TypeReference<List<XmlSchema>>() {
+        List<XmlSchema> xmlSchemaList = objectMapper.readValue(schema, new TypeReference<>() {
         });
         return XMLUtils.jsonToXml(requestBody, xmlSchemaList);
     }

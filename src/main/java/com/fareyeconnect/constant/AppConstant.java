@@ -119,6 +119,10 @@ public final class AppConstant {
     }
 
     public static class ContextMember {
+
+        public static final String STATUS="status";
+        private static final String STATUS_DOC="The status which is sent to the caller";
+
         public static final String REQUEST = "request";
         private static final String REQUEST_DOC = "The request sent by user on setu service invocation";
         public static final String RESPONSE = "response";

@@ -85,10 +85,4 @@ public class ServiceController {
     public Uni<Object> publish(@Valid Service service) {
         return servicePublisherService.publish(service);
     }
-
-    @GET
-    @Path("/{connector}/{connectorVersion}/{code}")
-    public Uni<Service> get(@RestPath String connector, @RestPath int connectorVersion, @RestPath String code) throws ExecutionException, InterruptedException {
-        return servicePublisherService.fetchLiveVersion(connector,connectorVersion, code);
-    }
 }
