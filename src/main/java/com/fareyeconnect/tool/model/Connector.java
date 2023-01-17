@@ -17,14 +17,14 @@
 package com.fareyeconnect.tool.model;
 
 import com.fareyeconnect.model.AbstractEntity;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.quarkus.panache.common.Parameters;
 import io.smallrye.common.constraint.NotNull;
+import io.smallrye.mutiny.Uni;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
 import javax.validation.constraints.NotBlank;
-import java.util.Set;
 
 /**
  * @author Baldeep Singh Kwatra
@@ -48,4 +48,7 @@ public class Connector extends AbstractEntity {
 
     private boolean shared;
 
+    public static Uni<Connector> findByCodeAndVersion(String code, int version) {
+        return find("code= :code and version= :version", Parameters.with("code", code).and("version", version)).firstResult();
+    }
 }

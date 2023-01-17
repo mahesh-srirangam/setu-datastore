@@ -24,10 +24,12 @@ import com.fareyeconnect.tool.service.ServicePublisherService;
 import com.fareyeconnect.tool.service.ServiceService;
 import io.opentelemetry.api.internal.StringUtils;
 import io.smallrye.mutiny.Uni;
+import org.jboss.resteasy.reactive.RestPath;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author Baldeep Singh Kwatra
@@ -85,8 +87,8 @@ public class ServiceController {
     }
 
     @GET
-    @Path("/daffa")
-    public Object get(Service service){
-        return servicePublisherService.get(service);
+    @Path("/{connector}/{connectorVersion}/{code}")
+    public Uni<Service> get(@RestPath String connector, @RestPath int connectorVersion, @RestPath String code) throws ExecutionException, InterruptedException {
+        return servicePublisherService.fetchLiveVersion(connector,connectorVersion, code);
     }
 }

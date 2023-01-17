@@ -40,6 +40,10 @@ public class ConnectorService {
         return Connector.findById(id).onItem().ifNull().failWith(EntityNotFoundException::new);
     }
 
+    public Uni<?> findByCodeAndVersion(String code, int version) {
+        return Connector.findByCodeAndVersion(code, version);
+    }
+
     @ReactiveTransactional
     public Uni<Connector> save(Connector connector) {
         return connector.persist();

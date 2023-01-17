@@ -33,6 +33,7 @@ import com.fareyeconnect.tool.task.Task;
 import com.fareyeconnect.util.BeanUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.smallrye.mutiny.Uni;
 import jakarta.xml.bind.JAXBException;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
@@ -40,6 +41,7 @@ import org.graalvm.polyglot.Value;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLStreamException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -71,11 +73,10 @@ public class FlowExecutionService {
     PropertyService property;
 
     @Inject
-    ServicePublisherService publisherService;
+    ServicePublisherService servicePublisherService;
 
 
     /**
-     *
      * @param connectorCode
      * @param serviceCode
      * @param requestBody
@@ -84,21 +85,29 @@ public class FlowExecutionService {
      * @throws JsonProcessingException
      * @throws JAXBException
      */
-    public void initiateFlowExecution(String connectorCode, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException, JAXBException, ExecutionException, InterruptedException {
-        Service service = null;//publisherService.getService(serviceCode, connectorCode);//.subscribeAsCompletionStage().get();
-        if (service == null)
-            throw new AppException("Service code doesn't exist");
-        Object request = validateAndBuildRequest(service, requestBody);
-        Language language = Language.JS;
-        try (Context context = buildContext(language, request, null)) {
-            executeFlow(context, service);
-        } catch (Exception e) {
-            throw new AppException("Flow execution failed with error " + e.getMessage());
-        }
+    public Uni<Response> initiateFlowExecution(String connectorCode, int connectorVersion, String serviceCode, String requestBody) throws XMLStreamException, ClassNotFoundException, JsonProcessingException, JAXBException, ExecutionException, InterruptedException {
+        Uni<Service> serviceUni = servicePublisherService.fetchLiveVersion(connectorCode, connectorVersion, serviceCode);
+        return serviceUni.onItem().transformToUni(service -> {
+            if (service == null)
+                throw new AppException("Service code doesn't exist");
+            else {
+                try {
+                    Object request = validateAndBuildRequest(service, requestBody);
+                    Language language = Language.JS;
+                    try (Context context = buildContext(language, request, null)) {
+                        executeFlow(context, service);
+                    } catch (Exception e) {
+                        throw new AppException("Flow execution failed with error " + e.getMessage());
+                    }
+                    return Uni.createFrom().item(null);
+                } catch (Exception e) {
+                    throw new AppException(e.getMessage());
+                }
+            }
+        });
     }
 
     /**
-     *
      * @param language
      * @param request
      * @param tempTaskVar
@@ -126,7 +135,6 @@ public class FlowExecutionService {
     }
 
     /**
-     *
      * @param service
      * @param requestBody
      * @return
@@ -146,7 +154,6 @@ public class FlowExecutionService {
     }
 
     /**
-     *
      * @param context
      * @param service
      * @throws ExecutionException
@@ -161,7 +168,6 @@ public class FlowExecutionService {
     }
 
     /**
-     *
      * @param startTask
      * @param flowMap
      * @param context
