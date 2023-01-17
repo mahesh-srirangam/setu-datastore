@@ -23,9 +23,8 @@ import lombok.Data;
 
 /**
  * @author Hemanth Reddy
- * @since 28/04/22
+ * @since 31/12/22
  */
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class XmlSchema {
