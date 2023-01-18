@@ -28,9 +28,11 @@ import lombok.Data;
 @Data
 public class Config {
 
-    private String requestSchema;
+    private String reqSchema;
 
-    private String responseSchema;
+    private String resSchema;
 
-    private String requestContentType;
+    private String reqContentType;
+
+    private String resContentType;
 }

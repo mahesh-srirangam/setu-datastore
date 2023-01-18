@@ -18,6 +18,7 @@ package com.fareyeconnect.tool.service;
 
 import com.fareyeconnect.config.PageRequest;
 import com.fareyeconnect.config.Paged;
+import com.fareyeconnect.config.security.GatewayUser;
 import com.fareyeconnect.constant.AppConstant;
 import com.fareyeconnect.tool.model.Connector;
 import io.quarkus.hibernate.reactive.panache.Panache;
@@ -40,8 +41,8 @@ public class ConnectorService {
         return Connector.findById(id).onItem().ifNull().failWith(EntityNotFoundException::new);
     }
 
-    public Uni<?> findByCodeAndVersion(String code, int version) {
-        return Connector.findByCodeAndVersion(code, version);
+    public Uni<?> findByCodeAndVersionAndCreatedByOrg(String code, int version) {
+        return Connector.findByCodeAndVersionAndCreatedByOrg(code, version, GatewayUser.getUser().getOrganizationId());
     }
 
     @ReactiveTransactional

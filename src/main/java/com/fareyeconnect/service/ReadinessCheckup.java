@@ -36,6 +36,6 @@ import javax.enterprise.context.ApplicationScoped;
 public class ReadinessCheckup implements HealthCheck {
     @Override
     public HealthCheckResponse call() {
-        return HealthCheckResponse.up("I am ready to serve");
+        return HealthCheckResponse.up("Setu is ready to serve");
     }
 }

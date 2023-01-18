@@ -48,7 +48,8 @@ public class Connector extends AbstractEntity {
 
     private boolean shared;
 
-    public static Uni<Connector> findByCodeAndVersion(String code, int version) {
-        return find("code= :code and version= :version", Parameters.with("code", code).and("version", version)).firstResult();
+    public static Uni<Connector> findByCodeAndVersionAndCreatedByOrg(String code, int version, String organizationId) {
+        return find("code= :code and version= :version and createdByOrg= :createdByOrg",
+                Parameters.with("code", code).and("version", version).and("createdByOrg", organizationId)).firstResult();
     }
 }

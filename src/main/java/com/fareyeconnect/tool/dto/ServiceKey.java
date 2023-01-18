@@ -33,6 +33,6 @@ public class ServiceKey {
 
     private String connector;
     private String service;
-    private String organizationId;
+    private String createdByOrg;
     private int connectorVersion;
 }

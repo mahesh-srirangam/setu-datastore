@@ -79,12 +79,12 @@ public class Service extends AbstractEntity {
         return find("id", id).firstResult();
     }
 
-    public static Uni<List<Service>> findByActive(String status) {
+    public static Uni<List<Service>> findByStatus(String status) {
         return list("status", status);
     }
 
-    public static Uni<Service> findByConnectorServiceCodeStatus(Connector connector, String serviceCode, String status) {
-        return find("connector= :connector and code= :code and status= :status", Parameters.with("connector", connector).
-                and("code", serviceCode).and("status", status)).firstResult();
+    public static Uni<Service> findByConnectorServiceCodeStatusAndCreatedByOrg(Connector connector, String serviceCode, String status, String organizationId) {
+        return find("connector= :connector and code= :code and status= :status and created_by_org= :created_by_org", Parameters.with("connector", connector).
+                and("code", serviceCode).and("status", status).and("created_by_org", organizationId)).firstResult();
     }
 }

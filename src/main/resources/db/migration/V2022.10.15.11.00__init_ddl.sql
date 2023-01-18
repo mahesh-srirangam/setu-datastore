@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS connector (
 );
 
 CREATE INDEX IF NOT EXISTS idx_org ON connector (created_by_org);
+CREATE INDEX IF NOT EXISTS idx_code_version_created_by_org ON connector(code,version,created_by_org);
 
 CREATE TABLE IF NOT EXISTS "service" (
     id varchar(255) NOT NULL,
@@ -67,5 +68,9 @@ CREATE TABLE IF NOT EXISTS "service" (
 );
 
 CREATE INDEX IF NOT EXISTS idx_org ON "service" (created_by_org);
+
+CREATE INDEX IF NOT EXISTS idx_status ON "service" (status);
+
+CREATE INDEX IF NOT EXISTS idx_connector_service_status_created_by_org ON "service" (connector_id,code,status,created_by_org);
 
 ALTER TABLE "service" ADD CONSTRAINT FK_connector_service FOREIGN KEY (connector_id) REFERENCES connector(id);

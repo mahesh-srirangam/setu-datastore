@@ -18,6 +18,7 @@ package com.fareyeconnect.tool.service;
 
 import com.fareyeconnect.config.PageRequest;
 import com.fareyeconnect.config.Paged;
+import com.fareyeconnect.config.security.GatewayUser;
 import com.fareyeconnect.constant.AppConstant;
 import com.fareyeconnect.tool.model.Connector;
 import com.fareyeconnect.tool.model.Service;
@@ -63,19 +64,11 @@ public class ServiceService {
         return new Paged<Service>().toPage(Service.findAll(pageRequest.toSort()).page(pageRequest.toPage()));
     }
 
-    public Uni<Service> findByServiceCode(String serviceCode) {
-        return Service.findByCode(serviceCode);
+    public Uni<List<Service>> findByStatus(String status) {
+        return Service.findByStatus(status);
     }
 
-    public Uni<List<Service>> findByActive(String status) {
-        return Service.findByActive(status);
-    }
-
-    public Uni<Service> findById(String serviceCode) {
-        return Service.findById(serviceCode);
-    }
-
-    public Uni<Service> findLiveService(Connector connector, String serviceCode, String status) {
-        return Service.findByConnectorServiceCodeStatus(connector, serviceCode, status);
+    public Uni<Service> findByConnectorServiceCodeStatusAndCreatedByOrg(Connector connector, String serviceCode, String status) {
+        return Service.findByConnectorServiceCodeStatusAndCreatedByOrg(connector, serviceCode, status, GatewayUser.getUser().getOrganizationId());
     }
 }

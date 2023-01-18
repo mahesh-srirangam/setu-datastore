@@ -25,7 +25,6 @@ package com.fareyeconnect.tool.service;
 import com.fareyeconnect.exception.AppException;
 import com.fareyeconnect.service.VariableService;
 import com.fareyeconnect.tool.dto.Config;
-import com.fareyeconnect.tool.dto.ServiceKey;
 import com.fareyeconnect.tool.helpers.KafkaHelper;
 import com.fareyeconnect.tool.helpers.UtilHelper;
 import com.fareyeconnect.tool.model.Service;
@@ -33,7 +32,6 @@ import com.fareyeconnect.tool.parser.Parser;
 import com.fareyeconnect.tool.task.Task;
 import com.fareyeconnect.util.BeanUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
@@ -45,7 +43,6 @@ import org.jboss.resteasy.reactive.RestResponse;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.json.Json;
 import javax.xml.stream.XMLStreamException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -82,11 +79,12 @@ public class FlowExecutionService {
 
     /**
      * Below service fetches the service and execute the service
-     *
+     * <p>
      * Validate request
      * Build graal engine context
      * Execute flow
      * Parse response
+     *
      * @param connectorCode
      * @param serviceCode
      * @param requestBody
@@ -121,6 +119,7 @@ public class FlowExecutionService {
 
     /**
      * Build graal engine based on the Language provided
+     *
      * @param language
      * @param request
      * @param tempTaskVar
@@ -150,6 +149,7 @@ public class FlowExecutionService {
 
     /**
      * Extract final response from the engine after service execution
+     *
      * @param context
      * @param language
      * @return
@@ -159,12 +159,13 @@ public class FlowExecutionService {
         Value contextBindings = context.getBindings(language.toString());
         Value response = contextBindings.getMember(ContextMember.RESPONSE);
         Value statusCode = contextBindings.getMember(ContextMember.STATUS);
-        Map responseNode =response.as(Map.class);
+        Map responseNode = response.as(Map.class);
         return RestResponse.status(RestResponse.Status.fromStatusCode(statusCode.asInt()), objectMapper.writeValueAsString(responseNode));
     }
 
     /**
      * Validate and parse the upcoming request based on config details
+     *
      * @param service
      * @param requestBody
      * @return
@@ -179,16 +180,17 @@ public class FlowExecutionService {
         if (config == null) {
             throw new AppException("Schema config details not found");
         }
-        requestContentType = config.getRequestContentType();
+        requestContentType = config.getReqContentType();
         if (requestContentType == null || requestContentType.isEmpty())
             requestContentType = APPLICATION_JSON;
         Class<?> clazz = Class.forName(PARSER_PACKAGE + requestContentType + PARSER);
         Parser parser = (Parser) BeanUtil.bean(clazz);
-        return parser.parse(config.getRequestSchema(), requestBody);
+        return parser.parse(config.getReqSchema(), requestBody);
     }
 
     /**
      * Once the context and service are available, start the flow execution with start task
+     *
      * @param context
      * @param service
      * @throws ExecutionException

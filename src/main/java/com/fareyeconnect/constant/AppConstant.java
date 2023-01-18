@@ -55,7 +55,7 @@ public final class AppConstant {
     }
 
     public enum Status {
-        LIVE("live"), DEVELOPMENT("development"), REVIEW("review"),STABLE("stable");
+        LIVE("live"), DEVELOPMENT("development"), REVIEW("review"),DEPRECATED("deprecated");
 
         private final String status;
 
@@ -123,9 +123,9 @@ public final class AppConstant {
         public static final String STATUS="status";
         private static final String STATUS_DOC="The status which is sent to the caller";
 
-        public static final String REQUEST = "request";
+        public static final String REQUEST = "req";
         private static final String REQUEST_DOC = "The request sent by user on setu service invocation";
-        public static final String RESPONSE = "response";
+        public static final String RESPONSE = "res";
         private static final String RESPONSE_DOC = "The final response that is to be sent to the setu service caller";
         public static final String TEMP = "temp";
         private static final String TEMP_DOC = "The variable in which temp data can be stored and can be used between flow tasks";

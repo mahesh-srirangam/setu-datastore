@@ -71,6 +71,7 @@ public class ServicePublisherService implements Consumer<Service> {
 
     /**
      * Initiate the redis key,value commands instances
+     *
      * @param reactiveRedisDataSource
      */
     public ServicePublisherService(ReactiveRedisDataSource reactiveRedisDataSource) {
@@ -82,18 +83,20 @@ public class ServicePublisherService implements Consumer<Service> {
 
     /**
      * Fetch all live services and cache these services to redis and local cache
+     *
      * @param event
      */
     @ReactiveTransactional
     void onStart(@Observes StartupEvent event) {
         Log.info("Publishing services start");
-        serviceService.findByActive(AppConstant.Status.LIVE.toString()).subscribe().with(serviceList ->
+        serviceService.findByStatus(AppConstant.Status.LIVE.toString()).subscribe().with(serviceList ->
                 serviceList.forEach(service -> cacheServicesOnStartup(service).subscribe()
                         .with(done -> Log.info("Number of services cached " + serviceList.size()))));
     }
 
     /**
      * Consume message pub/sub on publish service event
+     *
      * @param service the input argument
      */
     @Override
@@ -105,10 +108,11 @@ public class ServicePublisherService implements Consumer<Service> {
 
     /**
      * Cache services on startup
-     *
+     * <p>
      * Build service key
      * cache service to local instance cache
      * cache service to redi cache
+     *
      * @param service
      * @return
      */
@@ -128,6 +132,7 @@ public class ServicePublisherService implements Consumer<Service> {
      * Cache services on publish event
      * Cache service to redis
      * Publish message to channel for publishing to local cache
+     *
      * @param service
      * @return
      */
@@ -140,6 +145,7 @@ public class ServicePublisherService implements Consumer<Service> {
 
     /**
      * Upon receiving the publish event invalidate the older service
+     *
      * @param service
      * @return
      */
@@ -152,6 +158,7 @@ public class ServicePublisherService implements Consumer<Service> {
 
     /**
      * Publish service to local cache
+     *
      * @param serviceKey
      * @param service
      * @return
@@ -164,24 +171,25 @@ public class ServicePublisherService implements Consumer<Service> {
 
     /**
      * Publish the service
-     *
+     * <p>
      * Make version live in database
      * If a live version already exists change the status to stable and live the new version in database
      * Invalidate the cache
      * Publish service to cache
+     *
      * @param service
      * @return
      */
     @ReactiveTransactional
     public Uni<Object> publish(Service service) {
-        Uni<Service> publishedService = serviceService.findLiveService(service.getConnector(), service.getCode(), AppConstant.Status.LIVE.toString());
+        Uni<Service> publishedService = serviceService.findByConnectorServiceCodeStatusAndCreatedByOrg(service.getConnector(), service.getCode(), AppConstant.Status.LIVE.toString());
         return publishedService.onItem().transformToUni(item -> {
             if (item == null) {
                 Log.info("No version of this service code is in live state " + service.getCode());
                 return serviceService.update(service).onItem().transformToUni(this::publishServiceOnEvent);
             } else {
                 Log.info("Published version available " + item.getCode() + " Version:: " + item.getVersion());
-                item.setStatus(AppConstant.Status.STABLE.toString());
+                item.setStatus(AppConstant.Status.DEPRECATED.toString());
                 return serviceService.update(item).onItem().transformToUni(updatedItem ->
                         serviceService.update(service).onItem().transformToUni(
                                 liveVersion -> invalidateDeployedVersion(service).
@@ -201,6 +209,7 @@ public class ServicePublisherService implements Consumer<Service> {
      * 2) If service is not found  in instance cache query in redis cache
      * 3) If not found in redis cache fetch live version from database
      * Else throw exception
+     *
      * @param connectorCode
      * @param connectorVersion
      * @param serviceCode
@@ -218,11 +227,11 @@ public class ServicePublisherService implements Consumer<Service> {
             Uni<Service> serviceUni = serviceCommands.get(serviceKey);
             return serviceUni.onItem().transformToUni(item -> {
                 if (item == null) {
-                    return connectorService.findByCodeAndVersion(connectorCode, connectorVersion).onItem()
+                    return connectorService.findByCodeAndVersionAndCreatedByOrg(connectorCode, connectorVersion).onItem()
                             .transformToUni(connector -> {
                                 if (connector == null) throw new AppException("No connector found");
                                 else {
-                                    return serviceService.findLiveService((Connector) connector, serviceCode, AppConstant.Status.LIVE.toString())
+                                    return serviceService.findByConnectorServiceCodeStatusAndCreatedByOrg((Connector) connector, serviceCode, AppConstant.Status.LIVE.toString())
                                             .onItem().transformToUni(serviceFromDb -> {
                                                 if (serviceFromDb == null)
                                                     throw new AppException("No live service found");
@@ -232,7 +241,7 @@ public class ServicePublisherService implements Consumer<Service> {
                                 }
                             });
                 } else {
-                    Log.info("Service from redis cache "+item);
+                    Log.info("Service from redis cache " + item);
                     return Uni.createFrom().item(item);
                 }
             });
@@ -244,7 +253,7 @@ public class ServicePublisherService implements Consumer<Service> {
                 .service(service.getCode())
                 .connector(service.getConnector().getCode())
                 .connectorVersion(service.getConnector().getVersion())
-                .organizationId(organizationId)
+                .createdByOrg(organizationId)
                 .build();
     }
 
@@ -253,7 +262,7 @@ public class ServicePublisherService implements Consumer<Service> {
                 .connector(connectorCode)
                 .connectorVersion(connectorVersion)
                 .service(serviceCode)
-                .organizationId(organizationId)
+                .createdByOrg(organizationId)
                 .build();
     }
 }
