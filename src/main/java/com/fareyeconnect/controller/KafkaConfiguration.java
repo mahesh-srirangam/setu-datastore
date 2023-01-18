@@ -1,5 +1,6 @@
 package com.fareyeconnect.controller;
 
+import com.fareyeconnect.service.MessagingQueue;
 import com.vladmihalcea.hibernate.util.StringUtils;
 import io.vertx.core.Vertx;
 import io.vertx.kafka.client.consumer.KafkaConsumer;
@@ -20,7 +21,7 @@ import java.util.*;
  */
 
 @ApplicationScoped
-public class KafkaConfiguration {
+public class KafkaConfiguration implements MessagingQueue {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaConfiguration.class);
 
@@ -39,7 +40,11 @@ public class KafkaConfiguration {
     private KafkaConsumer<String, Integer> consumer;
     private KafkaProducer<String, Integer> producer;
 
-    void init() {
+    /**
+     * Initialise the Kafka Queue with configuration
+     */
+    @Override
+    public void init() {
         LOG.info("Kafka Launched in the kart");
         consumer = KafkaConsumer.create(vertx, consumerConfig());
         producer = KafkaProducer.create(vertx, producerConfig());
@@ -53,14 +58,26 @@ public class KafkaConfiguration {
         return producer;
     }
 
+    /**
+     * Get the kafka topic name(in case of single topic)
+     * @return
+     */
     public String getTopic() {
         return topic;
     }
 
+    /**
+     * Get the list of topics(in case of multiple topics)
+     * @return
+     */
     public Set<String> getListOfTopics(){
         return StringUtils.isBlank(topic)?Collections.emptySet(): Set.of(topic.split(","));
     }
 
+    /**
+     * Producer configuration for kafka
+     * @return
+     */
     private Map<String, String> producerConfig() {
         Map<String, String> config = new HashMap<>();
         config.put("bootstrap.servers", bootstrapServer);
@@ -69,6 +86,10 @@ public class KafkaConfiguration {
         return config;
     }
 
+    /**
+     * Consumer configuration for kafka
+     * @return
+     */
     private Map<String, String> consumerConfig() {
         Map<String, String> config = new HashMap<>();
         config.put("bootstrap.servers", bootstrapServer);

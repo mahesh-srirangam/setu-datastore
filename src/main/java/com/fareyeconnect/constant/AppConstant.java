@@ -53,6 +53,22 @@ public final class AppConstant {
         }
     }
 
+    public enum MessageQueue {
+        KAFKA("kafka"), RABBITMQ("rabbitmq");
+
+        private final String val;
+
+        MessageQueue(final String val) {
+            this.val = val;
+        }
+
+        @Override
+        public String toString() {
+            return val;
+        }
+    }
+
+
     public enum TypeOfOrder {
         FORWARD("Forward"), REVERSE("Reverse"), DROPOFF("Dropoff"), FTL("FTL"), OCEAN("Ocean"), EXCHANGE("Exchange");
 

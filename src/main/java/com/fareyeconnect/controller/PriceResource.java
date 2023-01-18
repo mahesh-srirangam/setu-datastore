@@ -22,7 +22,7 @@ public class PriceResource {
     Publisher<Double> prices;
 
     @Inject
-    PriceConverter converter;
+    KafkaQueueConsumer converter;
 
     @GET
     @Path("/stream")

@@ -1,7 +1,8 @@
 package com.fareyeconnect.controller;
 
 
-
+import com.fareyeconnect.constant.AppConstant;
+import com.fareyeconnect.service.MessagingQueueFactory;
 import io.quarkus.runtime.StartupEvent;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.ConfigValue;
@@ -10,8 +11,6 @@ import org.jboss.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
-import javax.enterprise.inject.UnsatisfiedResolutionException;
-import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 
 /**
@@ -29,30 +28,21 @@ public class BaseQueueConfiguration {
     RabbitMQConfiguration rabbitMQConfiguration;
 
 
+    @Inject
+    MessagingQueueFactory messagingQueueFactory;
     void onStartUp(@Observes StartupEvent start){
-        LOGGER.info("onStart missing");
+        LOGGER.info("onStart event");
     }
 
+    /**
+     * Initialise the type of messaging queue at runtime
+     * RabbitMQ, Kafka
+     */
     @PostConstruct
-    public void postCOndt(){
-        LOGGER.info("STarted in the kart");
-            ConfigValue s = ConfigProvider.getConfig().getConfigValue("implement.queue");
-        if(s.getValue()!=null && s.getValue().equalsIgnoreCase("kafka")){
-            kafkaConfiguration.init();
-        }
-
-        if(s.getValue()!=null && s.getValue().equalsIgnoreCase("rabbitmq")){
-            rabbitMQConfiguration.init();
-        }
-
-        try {
-            String value = CDI.current().select(KafkaTest.class).get().toString();
-            LOGGER.info("value for KafkaTest::"+value);
-        }catch (UnsatisfiedResolutionException ex){
-            LOGGER.info("No class found");
-            LOGGER.info(ex.getClass());
-        }
-
+    public void messagingQueueInit(){
+        LOGGER.info("Messaging queue intialisation");
+        ConfigValue s = ConfigProvider.getConfig().getConfigValue("implement.queue");
+        messagingQueueFactory.getMessagingQueue(AppConstant.MessageQueue.valueOf(s.getValue().toUpperCase())).init();
     }
 
 }

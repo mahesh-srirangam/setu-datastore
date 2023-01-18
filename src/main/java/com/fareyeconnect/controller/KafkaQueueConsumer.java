@@ -1,6 +1,7 @@
 package com.fareyeconnect.controller;
 
 import io.vertx.kafka.client.consumer.KafkaConsumer;
+import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.slf4j.Logger;
@@ -16,8 +17,8 @@ import javax.inject.Inject;
  */
 
 @ApplicationScoped
-public class PriceConverter {
-    private static final Logger LOG = LoggerFactory.getLogger(PriceConverter.class);
+public class KafkaQueueConsumer {
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaQueueConsumer.class);
 
     @Inject
     KafkaConfiguration kafkaConfig;
@@ -32,6 +33,9 @@ public class PriceConverter {
 
     private KafkaConsumer<String, Integer> priceConsumer;
 
+    /**
+     * Consuming messages from a single topic
+     */
     @PostConstruct
     void init() {
         LOG.info("Initializing PriceConverter");
@@ -42,17 +46,12 @@ public class PriceConverter {
             } else {
                 LOG.error("Could not subscribe {}", ar.cause().getMessage());
             }
-        }).handler(kafkaRecord -> {
-            int inputPrice = kafkaRecord.value();
-            LOG.info("Read price {} from Kafka", inputPrice);
-            if (started) {
-                double outputPrice = inputPrice * CONVERSION_RATE;
-                LOG.info("Writing price {} to price-stream", outputPrice);
-                priceEmitter.send(outputPrice);
-            }
-        });
+        }).handler(this::consumeMessage);
     }
 
+    /**
+     * Consuming messages from list of topics
+     */
     void initialise(){
         priceConsumer = kafkaConfig.getConsumer();
         //Subscribe to list of topics of kafka consumer
@@ -62,15 +61,21 @@ public class PriceConverter {
             } else {
                 LOG.error("Could not subscribe {}", ar.cause().getMessage());
             }
-        }).handler(kafkaRecord -> {
-            int inputPrice = kafkaRecord.value();
-            LOG.info("Read price {} from Kafka", inputPrice);
-            if (started) {
-                double outputPrice = inputPrice * CONVERSION_RATE;
-                LOG.info("Writing price {} to price-stream", outputPrice);
-                priceEmitter.send(outputPrice);
-            }
-        });
+        }).handler(this::consumeMessage);
+    }
+
+    /**
+     * Consuming the message received from kafka
+     * @param kafkaRecord
+     */
+    private void consumeMessage(KafkaConsumerRecord<String, Integer>  kafkaRecord){
+        int inputPrice = kafkaRecord.value();
+        LOG.info("Read price {} from Kafka", inputPrice);
+        if (started) {
+            double outputPrice = inputPrice * CONVERSION_RATE;
+            LOG.info("Writing price {} to price-stream", outputPrice);
+            priceEmitter.send(outputPrice);
+        }
     }
 
     public void start() {
