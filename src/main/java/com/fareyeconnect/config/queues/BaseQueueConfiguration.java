@@ -1,4 +1,4 @@
-package com.fareyeconnect.controller;
+package com.fareyeconnect.config.queues;
 
 
 import com.fareyeconnect.constant.AppConstant;
@@ -20,13 +20,6 @@ import javax.inject.Inject;
 @ApplicationScoped
 public class BaseQueueConfiguration {
     private static final Logger LOGGER = Logger.getLogger(BaseQueueConfiguration.class.getName());
-
-    @Inject
-    KafkaConfiguration kafkaConfiguration;
-
-    @Inject
-    RabbitMQConfiguration rabbitMQConfiguration;
-
 
     @Inject
     MessagingQueueFactory messagingQueueFactory;

@@ -1,13 +1,10 @@
-package com.fareyeconnect.controller;
+package com.fareyeconnect.config.queues;
 
 import io.vertx.kafka.client.consumer.KafkaConsumer;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
-import org.eclipse.microprofile.reactive.messaging.Channel;
-import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 /**
@@ -23,10 +20,6 @@ public class KafkaQueueConsumer {
     @Inject
     KafkaConfiguration kafkaConfig;
 
-    @Inject
-    @Channel("price-stream")
-    Emitter<Double> priceEmitter;
-
     private static final double CONVERSION_RATE = .88;
 
     private boolean started = false;
@@ -36,7 +29,6 @@ public class KafkaQueueConsumer {
     /**
      * Consuming messages from a single topic
      */
-    @PostConstruct
     void init() {
         LOG.info("Initializing PriceConverter");
         priceConsumer = kafkaConfig.getConsumer();
@@ -74,7 +66,6 @@ public class KafkaQueueConsumer {
         if (started) {
             double outputPrice = inputPrice * CONVERSION_RATE;
             LOG.info("Writing price {} to price-stream", outputPrice);
-            priceEmitter.send(outputPrice);
         }
     }
 

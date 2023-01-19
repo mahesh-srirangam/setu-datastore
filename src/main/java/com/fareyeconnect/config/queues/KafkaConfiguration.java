@@ -1,4 +1,4 @@
-package com.fareyeconnect.controller;
+package com.fareyeconnect.config.queues;
 
 import com.fareyeconnect.service.MessagingQueue;
 import com.vladmihalcea.hibernate.util.StringUtils;
@@ -36,6 +36,8 @@ public class KafkaConfiguration implements MessagingQueue {
     @ConfigProperty(name = "kafka.topic")
     String topic;
 
+    @Inject
+    KafkaQueueConsumer kafkaQueueConsumer;
 
     private KafkaConsumer<String, Integer> consumer;
     private KafkaProducer<String, Integer> producer;
@@ -47,7 +49,7 @@ public class KafkaConfiguration implements MessagingQueue {
     public void init() {
         LOG.info("Kafka Launched in the kart");
         consumer = KafkaConsumer.create(vertx, consumerConfig());
-        producer = KafkaProducer.create(vertx, producerConfig());
+        kafkaQueueConsumer.init();
     }
 
     public KafkaConsumer<String, Integer> getConsumer() {

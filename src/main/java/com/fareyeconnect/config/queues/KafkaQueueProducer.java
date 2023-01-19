@@ -1,6 +1,5 @@
-package com.fareyeconnect.controller;
+package com.fareyeconnect.config.queues;
 
-import io.quarkus.scheduler.Scheduled;
 import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
 import org.slf4j.Logger;
@@ -17,8 +16,8 @@ import java.util.Random;
  */
 
 @ApplicationScoped
-public class PriceGenerator {
-    private static final Logger LOG = LoggerFactory.getLogger(PriceGenerator.class);
+public class KafkaQueueProducer {
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaQueueProducer.class);
 
     @Inject
     KafkaConfiguration kafkaConfig;

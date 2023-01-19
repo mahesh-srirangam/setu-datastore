@@ -1,11 +1,9 @@
-package com.fareyeconnect.controller;
+package com.fareyeconnect.config.queues;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.rabbitmq.QueueOptions;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQConsumer;
-import org.eclipse.microprofile.reactive.messaging.Channel;
-import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,10 +22,6 @@ public class RabbitQueueConsumer {
 
     @Inject
     RabbitMQConfiguration rabbitMQConfiguration;
-
-    @Inject
-    @Channel("price-stream")
-    Emitter<Double> priceEmitter;
 
     private static final double CONVERSION_RATE = .88;
 
@@ -68,7 +62,6 @@ public class RabbitQueueConsumer {
             LOG.info("Got message: {}" ,message.body());
             double outputPrice = Double.parseDouble(message.body().toString()) * CONVERSION_RATE;
             LOG.info("Writing price {} to price-stream", outputPrice);
-            priceEmitter.send(outputPrice);
         });
     }
 

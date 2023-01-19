@@ -1,4 +1,4 @@
-package com.fareyeconnect.controller;
+package com.fareyeconnect.config.queues;
 
 import com.fareyeconnect.service.MessagingQueue;
 import io.vertx.core.Vertx;

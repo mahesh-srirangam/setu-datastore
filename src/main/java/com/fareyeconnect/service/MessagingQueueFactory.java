@@ -1,8 +1,8 @@
 package com.fareyeconnect.service;
 
 import com.fareyeconnect.constant.AppConstant;
-import com.fareyeconnect.controller.KafkaConfiguration;
-import com.fareyeconnect.controller.RabbitMQConfiguration;
+import com.fareyeconnect.config.queues.KafkaConfiguration;
+import com.fareyeconnect.config.queues.RabbitMQConfiguration;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
