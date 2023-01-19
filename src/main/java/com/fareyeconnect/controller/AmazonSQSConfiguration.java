@@ -2,29 +2,19 @@ package com.fareyeconnect.controller;
 
 
 import com.fareyeconnect.service.MessagingQueue;
-import com.github.dockerjava.zerodep.shaded.org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import com.vladmihalcea.hibernate.util.StringUtils;
-import io.vertx.core.Vertx;
-import io.vertx.rabbitmq.RabbitMQClient;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logmanager.handlers.AsyncHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.credentials.*;
-import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
-import software.amazon.awssdk.services.sqs.model.Message;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 
