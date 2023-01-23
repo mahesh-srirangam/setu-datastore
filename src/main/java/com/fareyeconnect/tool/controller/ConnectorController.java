@@ -16,6 +16,16 @@
  */
 package com.fareyeconnect.tool.controller;
 
+import com.fareyeconnect.config.PageRequest;
+import com.fareyeconnect.config.Paged;
+import com.fareyeconnect.exception.AppException;
+import com.fareyeconnect.service.ImageHelper;
+import com.fareyeconnect.tool.model.Connector;
+import com.fareyeconnect.tool.service.ConnectorService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.opentelemetry.api.internal.StringUtils;
+import io.smallrye.mutiny.Uni;
+
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.BeanParam;
@@ -25,25 +35,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-
-import com.fareyeconnect.config.PageRequest;
-import com.fareyeconnect.config.Paged;
-import com.fareyeconnect.exception.AppException;
-import com.fareyeconnect.service.KafkaHelper;
-import com.fareyeconnect.service.UtilHelper;
-import com.fareyeconnect.tool.model.Connector;
-import com.fareyeconnect.tool.service.ConnectorService;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.opentelemetry.api.internal.StringUtils;
-import io.smallrye.mutiny.Uni;
-
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -57,7 +49,7 @@ public class ConnectorController {
     ConnectorService connectorService;
 
     @Inject
-    KafkaHelper kafkaHelper;
+    ImageHelper imageHelper;
 
     @Inject
     ObjectMapper objectMapper;
@@ -97,15 +89,16 @@ public class ConnectorController {
         return connectorService.remove(ids);
     }
 
-    @GET
-    @Path("/helper")
-    public void hepler() throws IOException {
-        List<Object> msg = new ArrayList<>();
-        Map<String,String> map = new HashMap<>();
-        map.put("1","Hello");
-        String m = objectMapper.writeValueAsString(map);
-        msg.add(m);
-        kafkaHelper.sendBatch(null, msg, "int-fareye-test" );
-    }
+//    @GET
+//    @Path("/grpc")
+//    public Uni<String> hepler() throws IOException {
+//        return imageHelper.grpc("https://plus.unsplash.com/premium_photo-1669559809593-077547e9c2a7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw3fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60", "abcd");
+//    }
+//
+//    @GET
+//    @Path("/rest")
+//    public String grpc() throws IOException {
+//        return imageHelper.rest("https://plus.unsplash.com/premium_photo-1669559809593-077547e9c2a7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw3fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60", "abcd");
+//    }
 
 }
