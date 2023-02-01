@@ -1,35 +1,36 @@
 /**
  * ****************************************************************************
- *
+ * <p>
  * Copyright (c) 2022, FarEye and/or its affiliates. All rights
  * reserved.
  * ___________________________________________________________________________________
- *
- *
+ * <p>
+ * <p>
  * NOTICE: All information contained herein is, and remains the property of
- * FaEye and its suppliers,if any. The intellectual and technical concepts
+ * FarEye and its suppliers,if any. The intellectual and technical concepts
  * contained herein are proprietary to FarEye. and its suppliers and
  * may be covered by us and Foreign Patents, patents in process, and are
  * protected by trade secret or copyright law. Dissemination of this information
  * or reproduction of this material is strictly forbidden unless prior written
- * permission is obtained from FarEye
+ * permission is obtained from FarEye.
  */
+package com.fareyeconnect.tool.task;
 
-package com.fareyeconnect.util;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.spi.CDI;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.graalvm.polyglot.Context;
 
 /**
- *
- * @author Baldeep Singh Kwatra
- * @since 05-Apr-2022, 6:45:03 AM
+ * @author Hemanth Reddy
+ * @since 30/12/22
  */
-@ApplicationScoped
-public class BeanUtil {
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class FileService extends Task {
 
-    public static <T> T bean(Class<T> clazz) {
-        return CDI.current().select(clazz).get();
+
+    @Override
+    public void execute(Context context) {
+
     }
 }

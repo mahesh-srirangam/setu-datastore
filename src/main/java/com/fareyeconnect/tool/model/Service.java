@@ -1,11 +1,11 @@
 /**
  * ****************************************************************************
- *
+ * <p>
  * Copyright (c) 2022, FarEye and/or its affiliates. All rights
  * reserved.
  * ___________________________________________________________________________________
- *
- *
+ * <p>
+ * <p>
  * NOTICE: All information contained herein is, and remains the property of
  * FarEye and its suppliers,if any. The intellectual and technical concepts
  * contained herein are proprietary to FarEye. and its suppliers and
@@ -16,51 +16,75 @@
  */
 package com.fareyeconnect.tool.model;
 
-import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.validation.constraints.NotBlank;
-
+import com.fareyeconnect.model.AbstractEntity;
+import com.fareyeconnect.tool.dto.Config;
+import com.fareyeconnect.tool.task.Task;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import io.quarkus.panache.common.Parameters;
+import io.smallrye.common.constraint.NotNull;
+import io.smallrye.mutiny.Uni;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
-import com.fareyeconnect.model.AbstractEntity;
-import com.fareyeconnect.tool.Node;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-
-import io.smallrye.common.constraint.NotNull;
-import lombok.Data;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
- *
  * @author Baldeep Singh Kwatra
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class Service extends AbstractEntity {
 
     @NotBlank
-    String code;
+    private String code;
 
     @NotNull
-    String name;
+    private String name;
 
-    public String notes;
+    private String notes;
 
-    public boolean published;
+    private int version;
 
-    public int version;
+    private String category;
+
+    private String status;
+
+    private String trigger;
 
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb")
-    List<Node> node;
+    private List<Task> flow;
 
-    @OneToOne 
-    @JsonIgnore
-    public Connector connector;
+    @Type(type = "jsonb")
+    @Column(columnDefinition = "jsonb")
+    private Config config;
 
+    @ManyToOne
+    @NotNull
+    private Connector connector;
+
+    public static Uni<Service> findByCode(String serviceCode) {
+        return find("code", serviceCode).firstResult();
+    }
+
+    public static Uni<Service> findById(String id) {
+        return find("id", id).firstResult();
+    }
+
+    public static Uni<List<Service>> findByStatus(String status) {
+        return list("status", status);
+    }
+
+    public static Uni<Service> findByConnectorServiceCodeStatusAndCreatedByOrg(Connector connector, String serviceCode, String status, String organizationId) {
+        return find("connector= :connector and code= :code and status= :status and created_by_org= :created_by_org", Parameters.with("connector", connector).
+                and("code", serviceCode).and("status", status).and("created_by_org", organizationId)).firstResult();
+    }
 }

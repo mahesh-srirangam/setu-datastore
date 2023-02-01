@@ -25,11 +25,13 @@ import com.fareyeconnect.util.BeanUtil;
 
 import io.smallrye.common.constraint.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  *
  * @author Baldeep Singh Kwatra
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "`variable`")
