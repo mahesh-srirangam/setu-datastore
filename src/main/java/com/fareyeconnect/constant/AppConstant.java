@@ -54,7 +54,7 @@ public final class AppConstant {
     }
 
     public enum MessageQueue {
-        KAFKA("kafka"), RABBITMQ("rabbitmq");
+        KAFKA("kafka"), RABBITMQ("rabbitmq"), AMAZONSQS("amazonsqs");
 
         private final String val;
 

@@ -1,6 +1,7 @@
 package com.fareyeconnect.service;
 
 import com.fareyeconnect.constant.AppConstant;
+import com.fareyeconnect.controller.AmazonSQSConfiguration;
 import com.fareyeconnect.controller.KafkaConfiguration;
 import com.fareyeconnect.controller.RabbitMQConfiguration;
 
@@ -21,12 +22,17 @@ public class MessagingQueueFactory {
     @Inject
     RabbitMQConfiguration rabbitMQConfiguration;
 
+    @Inject
+    AmazonSQSConfiguration amazonSQSConfiguration;
+
     public MessagingQueue getMessagingQueue(AppConstant.MessageQueue msgQueue){
         switch (msgQueue){
             case KAFKA:
                 return kafkaConfiguration;
             case RABBITMQ:
                 return rabbitMQConfiguration;
+            case AMAZONSQS:
+                return amazonSQSConfiguration;
         }
         return null;
     }
