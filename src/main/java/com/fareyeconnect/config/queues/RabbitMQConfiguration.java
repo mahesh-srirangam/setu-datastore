@@ -1,6 +1,26 @@
+/*
+ * *
+ *  * ****************************************************************************
+ *  *
+ *  * Copyright (c) 2023, FarEye and/or its affiliates. All rights
+ *  * reserved.
+ *  * ___________________________________________________________________________________
+ *  *
+ *  *
+ *  * NOTICE: All information contained herein is, and remains the property of
+ *  * FaEye and its suppliers,if any. The intellectual and technical concepts
+ *  * contained herein are proprietary to FarEye. and its suppliers and
+ *  * may be covered by us and Foreign Patents, patents in process, and are
+ *  * protected by trade secret or copyright law. Dissemination of this information
+ *  * or reproduction of this material is strictly forbidden unless prior written
+ *  * permission is obtained from FarEye
+ *
+ */
+
 package com.fareyeconnect.config.queues;
 
 import com.fareyeconnect.service.MessagingQueue;
+import io.quarkus.logging.Log;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.rabbitmq.RabbitMQClient;
@@ -22,8 +42,6 @@ import javax.inject.Inject;
 @ApplicationScoped
 public class RabbitMQConfiguration implements MessagingQueue {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RabbitMQConfiguration.class);
-
     @Inject
     Vertx vertx;
 
@@ -41,7 +59,7 @@ public class RabbitMQConfiguration implements MessagingQueue {
      */
     @Override
     public void init() {
-        LOG.info("Rabbit MQ getting initialised");
+        Log.info("Rabbit MQ getting initialised");
         consumer = RabbitMQClient.create(vertx, consumerConfig());
         rabbitMQConverter.init();
     }
@@ -103,13 +121,13 @@ public class RabbitMQConfiguration implements MessagingQueue {
 
                 client.basicPublish(exchange,routingKey, Buffer.buffer(message.getBytes()), res -> {
                     if (res.succeeded()) {
-                        LOG.info("Message published successfully!");
+                        Log.info("Message published successfully!");
                     } else {
-                        LOG.info("Failed to publish message: {}" , res.cause().getMessage());
+                        Log.info("Failed to publish message: {}" + res.cause().getMessage());
                     }
                 });
             } else {
-                LOG.info("Failed to connect to RabbitMQ: {}", ar.cause().getMessage());
+                Log.info("Failed to connect to RabbitMQ: {}"+ ar.cause().getMessage());
             }
         });
     }

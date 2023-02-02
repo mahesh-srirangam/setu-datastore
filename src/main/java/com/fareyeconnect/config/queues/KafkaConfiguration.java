@@ -1,7 +1,27 @@
+/*
+ * *
+ *  * ****************************************************************************
+ *  *
+ *  * Copyright (c) 2023, FarEye and/or its affiliates. All rights
+ *  * reserved.
+ *  * ___________________________________________________________________________________
+ *  *
+ *  *
+ *  * NOTICE: All information contained herein is, and remains the property of
+ *  * FaEye and its suppliers,if any. The intellectual and technical concepts
+ *  * contained herein are proprietary to FarEye. and its suppliers and
+ *  * may be covered by us and Foreign Patents, patents in process, and are
+ *  * protected by trade secret or copyright law. Dissemination of this information
+ *  * or reproduction of this material is strictly forbidden unless prior written
+ *  * permission is obtained from FarEye
+ *
+ */
+
 package com.fareyeconnect.config.queues;
 
 import com.fareyeconnect.service.MessagingQueue;
 import com.vladmihalcea.hibernate.util.StringUtils;
+import io.quarkus.logging.Log;
 import io.vertx.core.Vertx;
 import io.vertx.kafka.client.consumer.KafkaConsumer;
 import io.vertx.kafka.client.producer.KafkaProducer;
@@ -22,8 +42,6 @@ import java.util.*;
 
 @ApplicationScoped
 public class KafkaConfiguration implements MessagingQueue {
-
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaConfiguration.class);
 
     @Inject
     @ConfigProperty(name = "kafka.bootstrap.server")
@@ -47,7 +65,7 @@ public class KafkaConfiguration implements MessagingQueue {
      */
     @Override
     public void init() {
-        LOG.info("Kafka Launched in the kart");
+        Log.info("Kafka Launched in the kart");
         consumer = KafkaConsumer.create(vertx, consumerConfig());
         kafkaQueueConsumer.init();
     }

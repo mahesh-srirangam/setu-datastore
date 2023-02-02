@@ -1,5 +1,25 @@
+/*
+ * *
+ *  * ****************************************************************************
+ *  *
+ *  * Copyright (c) 2023, FarEye and/or its affiliates. All rights
+ *  * reserved.
+ *  * ___________________________________________________________________________________
+ *  *
+ *  *
+ *  * NOTICE: All information contained herein is, and remains the property of
+ *  * FaEye and its suppliers,if any. The intellectual and technical concepts
+ *  * contained herein are proprietary to FarEye. and its suppliers and
+ *  * may be covered by us and Foreign Patents, patents in process, and are
+ *  * protected by trade secret or copyright law. Dissemination of this information
+ *  * or reproduction of this material is strictly forbidden unless prior written
+ *  * permission is obtained from FarEye
+ *
+ */
+
 package com.fareyeconnect.config.queues;
 
+import io.quarkus.logging.Log;
 import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
 import org.slf4j.Logger;
@@ -17,7 +37,6 @@ import java.util.Random;
 
 @ApplicationScoped
 public class KafkaQueueProducer {
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaQueueProducer.class);
 
     @Inject
     KafkaConfiguration kafkaConfig;
@@ -33,7 +52,7 @@ public class KafkaQueueProducer {
 //    @Scheduled(every = "5s")
     public void generatePrice() {
         int price = random.nextInt(100);
-        LOG.info("Writing price {} to Kafka", price);
+        Log.info("Writing price {} to Kafka"+ price);
         KafkaProducerRecord<String, Integer> dataToSend = KafkaProducerRecord.create(kafkaConfig.getTopic(), price);
         producer.send(dataToSend);
     }

@@ -1,11 +1,29 @@
+/*
+ * *
+ *  * ****************************************************************************
+ *  *
+ *  * Copyright (c) 2023, FarEye and/or its affiliates. All rights
+ *  * reserved.
+ *  * ___________________________________________________________________________________
+ *  *
+ *  *
+ *  * NOTICE: All information contained herein is, and remains the property of
+ *  * FaEye and its suppliers,if any. The intellectual and technical concepts
+ *  * contained herein are proprietary to FarEye. and its suppliers and
+ *  * may be covered by us and Foreign Patents, patents in process, and are
+ *  * protected by trade secret or copyright law. Dissemination of this information
+ *  * or reproduction of this material is strictly forbidden unless prior written
+ *  * permission is obtained from FarEye
+ *
+ */
+
 package com.fareyeconnect.config.queues;
 
+import io.quarkus.logging.Log;
 import io.vertx.core.AsyncResult;
 import io.vertx.rabbitmq.QueueOptions;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQConsumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -18,8 +36,6 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class RabbitQueueConsumer {
-    private static final Logger LOG = LoggerFactory.getLogger(RabbitQueueConsumer.class);
-
     @Inject
     RabbitMQConfiguration rabbitMQConfiguration;
 
@@ -29,7 +45,7 @@ public class RabbitQueueConsumer {
      *  Consuming the messages from the rabbitmq queue
      */
     void init() {
-        LOG.info("Initializing RabbitMQ Consumer");
+        Log.info("Initializing RabbitMQ Consumer");
         RabbitMQClient rabbitMQClient= rabbitMQConfiguration.getConsumer();
         QueueOptions options = new QueueOptions()
                 .setMaxInternalQueueSize(1000)
@@ -39,14 +55,14 @@ public class RabbitQueueConsumer {
             if (ar.succeeded()) {
                 rabbitMQClient.basicConsumer(rabbitMQConfiguration.getQueue(), options, rabbitMQConsumerAsyncResult -> {
                     if (rabbitMQConsumerAsyncResult.succeeded()) {
-                        LOG.info("RabbitMQ consumer created !");
+                        Log.info("RabbitMQ consumer created !");
                             consumeMessage(rabbitMQConsumerAsyncResult);
                     } else {
                         rabbitMQConsumerAsyncResult.cause().printStackTrace();
                     }
                 });
             } else {
-                LOG.info("Failed to connect to RabbitMQ: {}" , ar.cause().getMessage());
+                Log.info("Failed to connect to RabbitMQ: {}" + ar.cause().getMessage());
             }
         });
     }
@@ -59,9 +75,9 @@ public class RabbitQueueConsumer {
     private void consumeMessage(AsyncResult<RabbitMQConsumer> rabbitMQConsumerAsyncResult){
         RabbitMQConsumer mqConsumer = rabbitMQConsumerAsyncResult.result();
         mqConsumer.handler(message -> {
-            LOG.info("Got message: {}" ,message.body());
+            Log.info("Got message: {}" +message.body());
             double outputPrice = Double.parseDouble(message.body().toString()) * CONVERSION_RATE;
-            LOG.info("Writing price {} to price-stream", outputPrice);
+            Log.info("Writing price {} to price-stream"+ outputPrice);
         });
     }
 

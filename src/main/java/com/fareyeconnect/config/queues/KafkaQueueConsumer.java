@@ -1,5 +1,25 @@
+/*
+ * *
+ *  * ****************************************************************************
+ *  *
+ *  * Copyright (c) 2023, FarEye and/or its affiliates. All rights
+ *  * reserved.
+ *  * ___________________________________________________________________________________
+ *  *
+ *  *
+ *  * NOTICE: All information contained herein is, and remains the property of
+ *  * FaEye and its suppliers,if any. The intellectual and technical concepts
+ *  * contained herein are proprietary to FarEye. and its suppliers and
+ *  * may be covered by us and Foreign Patents, patents in process, and are
+ *  * protected by trade secret or copyright law. Dissemination of this information
+ *  * or reproduction of this material is strictly forbidden unless prior written
+ *  * permission is obtained from FarEye
+ *
+ */
+
 package com.fareyeconnect.config.queues;
 
+import io.quarkus.logging.Log;
 import io.vertx.kafka.client.consumer.KafkaConsumer;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import org.slf4j.Logger;
@@ -15,8 +35,6 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class KafkaQueueConsumer {
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaQueueConsumer.class);
-
     @Inject
     KafkaConfiguration kafkaConfig;
 
@@ -30,13 +48,13 @@ public class KafkaQueueConsumer {
      * Consuming messages from a single topic
      */
     void init() {
-        LOG.info("Initializing PriceConverter");
+        Log.info("Initializing Kafka Consumer");
         priceConsumer = kafkaConfig.getConsumer();
         priceConsumer.subscribe(kafkaConfig.getTopic(), ar -> {
             if (ar.succeeded()) {
-                LOG.info("Successfully subsribed to topic {}", kafkaConfig.getTopic());
+                Log.info("Successfully subsribed to topic {}"+ kafkaConfig.getTopic());
             } else {
-                LOG.error("Could not subscribe {}", ar.cause().getMessage());
+                Log.error("Could not subscribe {}"+ ar.cause().getMessage());
             }
         }).handler(this::consumeMessage);
     }
@@ -49,9 +67,9 @@ public class KafkaQueueConsumer {
         //Subscribe to list of topics of kafka consumer
         priceConsumer.subscribe(kafkaConfig.getListOfTopics(), ar -> {
             if (ar.succeeded()) {
-                LOG.info("Successfully subsribed to topic {}", kafkaConfig.getTopic());
+                Log.info("Successfully subsribed to topic {}"+ kafkaConfig.getTopic());
             } else {
-                LOG.error("Could not subscribe {}", ar.cause().getMessage());
+                Log.error("Could not subscribe {}"+ ar.cause().getMessage());
             }
         }).handler(this::consumeMessage);
     }
@@ -62,10 +80,10 @@ public class KafkaQueueConsumer {
      */
     private void consumeMessage(KafkaConsumerRecord<String, Integer>  kafkaRecord){
         int inputPrice = kafkaRecord.value();
-        LOG.info("Read price {} from Kafka", inputPrice);
+        Log.info("Read price {} from Kafka"+ inputPrice);
         if (started) {
             double outputPrice = inputPrice * CONVERSION_RATE;
-            LOG.info("Writing price {} to price-stream", outputPrice);
+            Log.info("Writing price {} to price-stream"+ outputPrice);
         }
     }
 
