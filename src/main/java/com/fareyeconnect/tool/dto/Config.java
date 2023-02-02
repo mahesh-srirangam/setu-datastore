@@ -35,4 +35,22 @@ public class Config {
     private String reqContentType;
 
     private String resContentType;
+
+    private String kafkaTopic;
+
+    private String bootstrapServer;
+
+    private String keyDeserializer;
+
+    private String valueDeserializer;
+
+    private String queue;
+
+    private String user;
+
+    private int port;
+
+    private String password;
+    private String host;
+    private String virtualHost;
 }

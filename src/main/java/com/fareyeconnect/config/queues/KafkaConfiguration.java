@@ -98,7 +98,7 @@ public class KafkaConfiguration implements MessagingQueue {
         config.put("bootstrap.servers", bootstrapServer);
         config.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         config.put("value.deserializer", "org.apache.kafka.common.serialization.IntegerDeserializer");
-        config.put("group.id", "vertx_consumer");
+        config.put("group.id", getTopic()+"-consumer-group");
         return config;
     }
 

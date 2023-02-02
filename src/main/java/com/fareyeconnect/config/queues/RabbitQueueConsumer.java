@@ -39,7 +39,6 @@ public class RabbitQueueConsumer {
     @Inject
     RabbitMQConfiguration rabbitMQConfiguration;
 
-    private static final double CONVERSION_RATE = .88;
 
     /**
      *  Consuming the messages from the rabbitmq queue
@@ -75,7 +74,7 @@ public class RabbitQueueConsumer {
     private void consumeMessage(AsyncResult<RabbitMQConsumer> rabbitMQConsumerAsyncResult){
         rabbitMQConsumerAsyncResult.result().handler(message -> {
             Log.info("Got message: {}" +message.body());
-            //consume Message from rabbitmq which invokes a service
+            //invoke setu service
         });
     }
 

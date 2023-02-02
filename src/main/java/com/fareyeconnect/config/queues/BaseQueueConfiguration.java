@@ -24,6 +24,7 @@ import com.fareyeconnect.constant.AppConstant;
 import com.fareyeconnect.service.MessagingQueueFactory;
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.StartupEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.ConfigValue;
 
@@ -31,6 +32,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.util.Arrays;
 
 /**
  * @author srirangam
@@ -48,12 +50,17 @@ public class BaseQueueConfiguration {
     /**
      * Initialise the type of messaging queue at runtime
      * RabbitMQ, Kafka
+     * can implement multiple queues in an instance
      */
     @PostConstruct
     public void messagingQueueInit(){
         Log.info("Messaging queue intialisation");
         ConfigValue s = ConfigProvider.getConfig().getConfigValue("implement.queue");
-        messagingQueueFactory.getMessagingQueue(AppConstant.MessageQueue.valueOf(s.getValue().toUpperCase())).init();
+        if(!StringUtils.isEmpty(s.getValue())){
+            Arrays.stream(s.getValue().split(","))
+                    .filter(e->!StringUtils.isEmpty(e))
+                    .forEach(msgQueue->messagingQueueFactory.getMessagingQueue(AppConstant.MessageQueue.valueOf(msgQueue.toUpperCase())).init());
+        }
     }
 
 }

@@ -26,8 +26,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQOptions;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
@@ -52,7 +50,7 @@ public class RabbitMQConfiguration implements MessagingQueue {
     private RabbitMQClient consumer;
 
     @Inject
-    RabbitQueueConsumer rabbitMQConverter;
+    RabbitQueueConsumer rabbitQueueConsumer;
 
     /**
      * Initialise the RabbitMQ Queue with configuration
@@ -61,7 +59,7 @@ public class RabbitMQConfiguration implements MessagingQueue {
     public void init() {
         Log.info("Rabbit MQ getting initialised");
         consumer = RabbitMQClient.create(vertx, consumerConfig());
-        rabbitMQConverter.init();
+        rabbitQueueConsumer.init();
     }
 
     /**

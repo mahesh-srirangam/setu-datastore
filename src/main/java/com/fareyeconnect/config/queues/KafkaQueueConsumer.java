@@ -76,7 +76,7 @@ public class KafkaQueueConsumer {
     private void consumeMessage(KafkaConsumerRecord<String, Integer>  kafkaRecord){
         int inputPrice = kafkaRecord.value();
         Log.info("Read price {} from Kafka"+ inputPrice);
-       //consume Message from kafka which invokes a service
+       //invoke setu service
     }
 
 }
