@@ -1,11 +1,11 @@
 /**
  * ****************************************************************************
- *
- * Copyright (c) 2022, FarEye and/or its affiliates. All rights
+ * <p>
+ * Copyright (c) 2023, FarEye and/or its affiliates. All rights
  * reserved.
  * ___________________________________________________________________________________
- *
- *
+ * <p>
+ * <p>
  * NOTICE: All information contained herein is, and remains the property of
  * FaEye and its suppliers,if any. The intellectual and technical concepts
  * contained herein are proprietary to FarEye. and its suppliers and
@@ -15,21 +15,15 @@
  * permission is obtained from FarEye
  */
 
-package com.fareyeconnect.util;
+package com.fareyeconnect.tool.helpers;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.spi.CDI;
+import lombok.NoArgsConstructor;
 
 /**
- *
- * @author Baldeep Singh Kwatra
- * @since 05-Apr-2022, 6:45:03 AM
+ * @author Hemanth Reddy
+ * @since 16/01/23
  */
-@ApplicationScoped
-public class BeanUtil {
+@NoArgsConstructor
+public class KafkaHelper {
 
-    public static <T> T bean(Class<T> clazz) {
-        return CDI.current().select(clazz).get();
-    }
 }

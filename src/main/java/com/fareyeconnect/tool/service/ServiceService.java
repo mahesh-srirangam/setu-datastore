@@ -1,11 +1,11 @@
 /**
  * ****************************************************************************
- *
+ * <p>
  * Copyright (c) 2022, FarEye and/or its affiliates. All rights
  * reserved.
  * ___________________________________________________________________________________
- *
- *
+ * <p>
+ * <p>
  * NOTICE: All information contained herein is, and remains the property of
  * FarEye and its suppliers,if any. The intellectual and technical concepts
  * contained herein are proprietary to FarEye. and its suppliers and
@@ -16,22 +16,22 @@
  */
 package com.fareyeconnect.tool.service;
 
-import java.util.Arrays;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.persistence.EntityNotFoundException;
-
 import com.fareyeconnect.config.PageRequest;
 import com.fareyeconnect.config.Paged;
+import com.fareyeconnect.config.security.GatewayUser;
 import com.fareyeconnect.constant.AppConstant;
+import com.fareyeconnect.tool.model.Connector;
 import com.fareyeconnect.tool.model.Service;
-
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
 import io.smallrye.mutiny.Uni;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.persistence.EntityNotFoundException;
+import java.util.Arrays;
+import java.util.List;
+
 /**
- *
  * @author Baldeep Singh Kwatra
  * @since 24-Dec-2022, 7:03:58 PM
  */
@@ -60,7 +60,15 @@ public class ServiceService {
 
     }
 
-    public Uni<Paged<Service>> findAll(PageRequest pageRequest)  {
+    public Uni<Paged<Service>> findAll(PageRequest pageRequest) {
         return new Paged<Service>().toPage(Service.findAll(pageRequest.toSort()).page(pageRequest.toPage()));
+    }
+
+    public Uni<List<Service>> findByStatus(String status) {
+        return Service.findByStatus(status);
+    }
+
+    public Uni<Service> findByConnectorServiceCodeStatusAndCreatedByOrg(Connector connector, String serviceCode, String status) {
+        return Service.findByConnectorServiceCodeStatusAndCreatedByOrg(connector, serviceCode, status, GatewayUser.getUser().getOrganizationId());
     }
 }
