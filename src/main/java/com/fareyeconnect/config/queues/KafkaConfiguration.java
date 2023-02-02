@@ -58,7 +58,6 @@ public class KafkaConfiguration implements MessagingQueue {
     KafkaQueueConsumer kafkaQueueConsumer;
 
     private KafkaConsumer<String, Integer> consumer;
-    private KafkaProducer<String, Integer> producer;
 
     /**
      * Initialise the Kafka Queue with configuration
@@ -72,10 +71,6 @@ public class KafkaConfiguration implements MessagingQueue {
 
     public KafkaConsumer<String, Integer> getConsumer() {
         return consumer;
-    }
-
-    public KafkaProducer<String, Integer> getProducer() {
-        return producer;
     }
 
     /**
@@ -95,18 +90,6 @@ public class KafkaConfiguration implements MessagingQueue {
     }
 
     /**
-     * Producer configuration for kafka
-     * @return
-     */
-    private Map<String, String> producerConfig() {
-        Map<String, String> config = new HashMap<>();
-        config.put("bootstrap.servers", bootstrapServer);
-        config.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        config.put("value.serializer", "org.apache.kafka.common.serialization.IntegerSerializer");
-        return config;
-    }
-
-    /**
      * Consumer configuration for kafka
      * @return
      */
@@ -122,6 +105,5 @@ public class KafkaConfiguration implements MessagingQueue {
     @PreDestroy
     void close() {
         if(consumer!=null)consumer.close();
-        if(producer!=null)producer.close();
     }
 }

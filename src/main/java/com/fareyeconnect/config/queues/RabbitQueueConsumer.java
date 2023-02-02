@@ -73,11 +73,9 @@ public class RabbitQueueConsumer {
      * @param rabbitMQConsumerAsyncResult
      */
     private void consumeMessage(AsyncResult<RabbitMQConsumer> rabbitMQConsumerAsyncResult){
-        RabbitMQConsumer mqConsumer = rabbitMQConsumerAsyncResult.result();
-        mqConsumer.handler(message -> {
+        rabbitMQConsumerAsyncResult.result().handler(message -> {
             Log.info("Got message: {}" +message.body());
-            double outputPrice = Double.parseDouble(message.body().toString()) * CONVERSION_RATE;
-            Log.info("Writing price {} to price-stream"+ outputPrice);
+            //consume Message from rabbitmq which invokes a service
         });
     }
 

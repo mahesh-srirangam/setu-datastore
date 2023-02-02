@@ -22,8 +22,6 @@ package com.fareyeconnect.config.queues;
 import io.quarkus.logging.Log;
 import io.vertx.kafka.client.consumer.KafkaConsumer;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -38,19 +36,15 @@ public class KafkaQueueConsumer {
     @Inject
     KafkaConfiguration kafkaConfig;
 
-    private static final double CONVERSION_RATE = .88;
-
-    private boolean started = false;
-
-    private KafkaConsumer<String, Integer> priceConsumer;
+    private KafkaConsumer<String, Integer> kafkaConsumer;
 
     /**
      * Consuming messages from a single topic
      */
     void init() {
         Log.info("Initializing Kafka Consumer");
-        priceConsumer = kafkaConfig.getConsumer();
-        priceConsumer.subscribe(kafkaConfig.getTopic(), ar -> {
+        kafkaConsumer = kafkaConfig.getConsumer();
+        kafkaConsumer.subscribe(kafkaConfig.getTopic(), ar -> {
             if (ar.succeeded()) {
                 Log.info("Successfully subsribed to topic {}"+ kafkaConfig.getTopic());
             } else {
@@ -59,13 +53,14 @@ public class KafkaQueueConsumer {
         }).handler(this::consumeMessage);
     }
 
+
     /**
      * Consuming messages from list of topics
      */
     void initialise(){
-        priceConsumer = kafkaConfig.getConsumer();
+        kafkaConsumer = kafkaConfig.getConsumer();
         //Subscribe to list of topics of kafka consumer
-        priceConsumer.subscribe(kafkaConfig.getListOfTopics(), ar -> {
+        kafkaConsumer.subscribe(kafkaConfig.getListOfTopics(), ar -> {
             if (ar.succeeded()) {
                 Log.info("Successfully subsribed to topic {}"+ kafkaConfig.getTopic());
             } else {
@@ -81,14 +76,7 @@ public class KafkaQueueConsumer {
     private void consumeMessage(KafkaConsumerRecord<String, Integer>  kafkaRecord){
         int inputPrice = kafkaRecord.value();
         Log.info("Read price {} from Kafka"+ inputPrice);
-        if (started) {
-            double outputPrice = inputPrice * CONVERSION_RATE;
-            Log.info("Writing price {} to price-stream"+ outputPrice);
-        }
-    }
-
-    public void start() {
-        started = true;
+       //consume Message from kafka which invokes a service
     }
 
 }
