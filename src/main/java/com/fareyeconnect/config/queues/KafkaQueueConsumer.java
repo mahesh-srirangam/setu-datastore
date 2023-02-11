@@ -24,7 +24,8 @@ import io.vertx.kafka.client.consumer.KafkaConsumer;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import java.util.Set;
+
 /**
  *
  * @author srirangam
@@ -33,20 +34,15 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class KafkaQueueConsumer {
-    @Inject
-    KafkaConfiguration kafkaConfig;
-
-    private KafkaConsumer<String, Integer> kafkaConsumer;
 
     /**
      * Consuming messages from a single topic
      */
-    void init() {
+    void init(KafkaConsumer<String, Integer> kafkaConsumer, String kafkaTopic) {
         Log.info("Initializing Kafka Consumer");
-        kafkaConsumer = kafkaConfig.getConsumer();
-        kafkaConsumer.subscribe(kafkaConfig.getTopic(), ar -> {
+        kafkaConsumer.subscribe(kafkaTopic, ar -> {
             if (ar.succeeded()) {
-                Log.info("Successfully subsribed to topic {}"+ kafkaConfig.getTopic());
+                Log.info("Successfully subsribed to topic {}"+ kafkaTopic);
             } else {
                 Log.error("Could not subscribe {}"+ ar.cause().getMessage());
             }
@@ -57,12 +53,11 @@ public class KafkaQueueConsumer {
     /**
      * Consuming messages from list of topics
      */
-    void initialise(){
-        kafkaConsumer = kafkaConfig.getConsumer();
+    void initialise(KafkaConsumer<String, Integer> kafkaConsumer, Set<String> listOfTopics){
         //Subscribe to list of topics of kafka consumer
-        kafkaConsumer.subscribe(kafkaConfig.getListOfTopics(), ar -> {
+        kafkaConsumer.subscribe(listOfTopics, ar -> {
             if (ar.succeeded()) {
-                Log.info("Successfully subsribed to topic {}"+ kafkaConfig.getTopic());
+                Log.info("Successfully subsribed to topic {}"+listOfTopics);
             } else {
                 Log.error("Could not subscribe {}"+ ar.cause().getMessage());
             }

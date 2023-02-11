@@ -26,7 +26,6 @@ import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQConsumer;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 /**
  *
@@ -36,23 +35,20 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class RabbitQueueConsumer {
-    @Inject
-    RabbitMQConfiguration rabbitMQConfiguration;
 
 
     /**
      *  Consuming the messages from the rabbitmq queue
      */
-    void init() {
+    void init(RabbitMQClient consumer, String queue) {
         Log.info("Initializing RabbitMQ Consumer");
-        RabbitMQClient rabbitMQClient= rabbitMQConfiguration.getConsumer();
         QueueOptions options = new QueueOptions()
                 .setMaxInternalQueueSize(1000)
                 .setKeepMostRecent(true);
 
-        rabbitMQClient.start(ar -> {
+        consumer.start(ar -> {
             if (ar.succeeded()) {
-                rabbitMQClient.basicConsumer(rabbitMQConfiguration.getQueue(), options, rabbitMQConsumerAsyncResult -> {
+                consumer.basicConsumer(queue, options, rabbitMQConsumerAsyncResult -> {
                     if (rabbitMQConsumerAsyncResult.succeeded()) {
                         Log.info("RabbitMQ consumer created !");
                             consumeMessage(rabbitMQConsumerAsyncResult);

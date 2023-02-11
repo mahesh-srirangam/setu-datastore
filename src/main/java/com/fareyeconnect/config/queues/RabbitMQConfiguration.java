@@ -20,12 +20,12 @@
 package com.fareyeconnect.config.queues;
 
 import com.fareyeconnect.service.MessagingQueue;
+import com.fareyeconnect.tool.dto.Config;
 import io.quarkus.logging.Log;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQOptions;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
@@ -43,11 +43,9 @@ public class RabbitMQConfiguration implements MessagingQueue {
     @Inject
     Vertx vertx;
 
-    @Inject
-    @ConfigProperty(name = "rabbitmq.queue")
-    String queue;
-
     private RabbitMQClient consumer;
+
+    private String queue;
 
     @Inject
     RabbitQueueConsumer rabbitQueueConsumer;
@@ -56,10 +54,11 @@ public class RabbitMQConfiguration implements MessagingQueue {
      * Initialise the RabbitMQ Queue with configuration
      */
     @Override
-    public void init() {
+    public void init(Config config) {
         Log.info("Rabbit MQ getting initialised");
-        consumer = RabbitMQClient.create(vertx, consumerConfig());
-        rabbitQueueConsumer.init();
+        queue = config.getQueueName();
+        consumer = RabbitMQClient.create(vertx, consumerConfig(config));
+        rabbitQueueConsumer.init(consumer, queue);
     }
 
     /**
@@ -84,20 +83,20 @@ public class RabbitMQConfiguration implements MessagingQueue {
      * Set the consumer configurations of the RabbitMQ
      * @return
      */
-    private RabbitMQOptions consumerConfig() {
-        RabbitMQOptions config = new RabbitMQOptions();
-        config.setUser("guest");
-        config.setPort(5672);
-        config.setPassword("guest");
-        config.setHost("localhost");
-        config.setVirtualHost("/");
-        config.setConnectionTimeout(6000); // in milliseconds
-        config.setRequestedHeartbeat(60); // in seconds
-        config.setHandshakeTimeout(6000); // in milliseconds
-        config.setRequestedChannelMax(5);
-        config.setNetworkRecoveryInterval(500); // in milliseconds
-        config.setAutomaticRecoveryEnabled(true);
-        return config;
+    private RabbitMQOptions consumerConfig(Config config) {
+        RabbitMQOptions queueConfig = new RabbitMQOptions();
+        queueConfig.setUser(config.getUser());
+        queueConfig.setPort(config.getPort());
+        queueConfig.setPassword(config.getPassword());
+        queueConfig.setHost(config.getHost());
+        queueConfig.setVirtualHost(config.getVirtualHost());
+        queueConfig.setConnectionTimeout(6000); // in milliseconds
+        queueConfig.setRequestedHeartbeat(60); // in seconds
+        queueConfig.setHandshakeTimeout(6000); // in milliseconds
+        queueConfig.setRequestedChannelMax(5);
+        queueConfig.setNetworkRecoveryInterval(500); // in milliseconds
+        queueConfig.setAutomaticRecoveryEnabled(true);
+        return queueConfig;
     }
 
     /**

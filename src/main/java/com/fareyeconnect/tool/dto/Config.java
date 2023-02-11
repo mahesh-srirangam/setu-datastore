@@ -44,7 +44,7 @@ public class Config {
 
     private String valueDeserializer;
 
-    private String queue;
+    private String queueName;
 
     private String user;
 
@@ -53,4 +53,6 @@ public class Config {
     private String password;
     private String host;
     private String virtualHost;
+
+    private String queueType;
 }

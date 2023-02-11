@@ -20,19 +20,19 @@
 package com.fareyeconnect.config.queues;
 
 import com.fareyeconnect.service.MessagingQueue;
+import com.fareyeconnect.tool.dto.Config;
 import com.vladmihalcea.hibernate.util.StringUtils;
 import io.quarkus.logging.Log;
 import io.vertx.core.Vertx;
 import io.vertx.kafka.client.consumer.KafkaConsumer;
-import io.vertx.kafka.client.producer.KafkaProducer;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -44,29 +44,23 @@ import java.util.*;
 public class KafkaConfiguration implements MessagingQueue {
 
     @Inject
-    @ConfigProperty(name = "kafka.bootstrap.server")
-    String bootstrapServer;
-
-    @Inject
     Vertx vertx;
-
-    @Inject
-    @ConfigProperty(name = "kafka.topic")
-    String topic;
 
     @Inject
     KafkaQueueConsumer kafkaQueueConsumer;
 
     private KafkaConsumer<String, Integer> consumer;
 
+    private String kafkaTopic;
     /**
      * Initialise the Kafka Queue with configuration
      */
     @Override
-    public void init() {
+    public void init(Config config) {
         Log.info("Kafka Launched in the kart");
-        consumer = KafkaConsumer.create(vertx, consumerConfig());
-        kafkaQueueConsumer.init();
+        kafkaTopic = config.getKafkaTopic();
+        consumer = KafkaConsumer.create(vertx, consumerConfig(config));
+        kafkaQueueConsumer.init(consumer, kafkaTopic);
     }
 
     public KafkaConsumer<String, Integer> getConsumer() {
@@ -78,7 +72,7 @@ public class KafkaConfiguration implements MessagingQueue {
      * @return
      */
     public String getTopic() {
-        return topic;
+        return kafkaTopic;
     }
 
     /**
@@ -86,20 +80,20 @@ public class KafkaConfiguration implements MessagingQueue {
      * @return
      */
     public Set<String> getListOfTopics(){
-        return StringUtils.isBlank(topic)?Collections.emptySet(): Set.of(topic.split(","));
+        return StringUtils.isBlank(kafkaTopic)?Collections.emptySet(): Set.of(kafkaTopic.split(","));
     }
 
     /**
      * Consumer configuration for kafka
      * @return
      */
-    private Map<String, String> consumerConfig() {
-        Map<String, String> config = new HashMap<>();
-        config.put("bootstrap.servers", bootstrapServer);
-        config.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        config.put("value.deserializer", "org.apache.kafka.common.serialization.IntegerDeserializer");
-        config.put("group.id", getTopic()+"-consumer-group");
-        return config;
+    private Map<String, String> consumerConfig(Config config) {
+        Map<String, String> consumerConfig = new HashMap<>();
+        consumerConfig.put("bootstrap.servers", config.getBootstrapServer() );
+        consumerConfig.put("key.deserializer", config.getKeyDeserializer());
+        consumerConfig.put("value.deserializer", config.getValueDeserializer());
+        consumerConfig.put("group.id", config.getKafkaTopic()+"-consumer-group");
+        return consumerConfig;
     }
 
     @PreDestroy
