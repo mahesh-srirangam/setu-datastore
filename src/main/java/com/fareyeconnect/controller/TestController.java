@@ -61,7 +61,7 @@ public class TestController {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String hello() {
-        return "HELLO";// + property.getKafkaBootstrapServers();
+        return "Hello Setu";// + property.getKafkaBootstrapServers();
     }
 
     @POST
