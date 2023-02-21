@@ -19,6 +19,7 @@ package com.fareyeconnect.config;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 
+import io.quarkus.logging.Log;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.flywaydb.core.Flyway;
 
@@ -42,6 +43,7 @@ public class RunFlyway {
 
     public void runFlywayMigration(@Observes StartupEvent event) {
         if (runMigration) {
+            Log.info(datasourceUsername+" "+datasourcePassword);
             Flyway flyway = Flyway.configure()
                     .dataSource("jdbc:" + datasourceUrl, datasourceUsername, datasourcePassword).load();
             flyway.migrate();
