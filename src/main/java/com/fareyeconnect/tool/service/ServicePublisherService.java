@@ -89,9 +89,16 @@ public class ServicePublisherService implements Consumer<Service> {
     @ReactiveTransactional
     void onStart(@Observes StartupEvent event) {
         Log.info("Publishing services start");
-        serviceService.findByStatus(AppConstant.Status.LIVE.toString()).subscribe().with(serviceList ->
-                serviceList.forEach(service -> cacheServicesOnStartup(service).subscribe()
-                        .with(done -> Log.info("Number of services cached " + serviceList.size()))));
+        cacheOnStart();
+    }
+
+    public Uni<String> cacheOnStart(){
+        return Uni.createFrom().emitter(em ->{
+            serviceService.findByStatus(AppConstant.Status.LIVE.toString()).subscribe().with(
+                    serviceList -> serviceList.forEach(service ->
+                            cacheServicesOnStartup(service).subscribe().with(done -> Log.info("Number of services cached " + serviceList.size()))));
+            em.complete("Caching completed");
+        });
     }
 
     /**

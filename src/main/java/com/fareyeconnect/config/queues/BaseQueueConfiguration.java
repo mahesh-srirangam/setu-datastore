@@ -24,6 +24,7 @@ import com.fareyeconnect.constant.AppConstant;
 import com.fareyeconnect.service.MessagingQueueFactory;
 import com.fareyeconnect.tool.dto.Config;
 import com.fareyeconnect.tool.model.Service;
+import com.fareyeconnect.tool.service.ServicePublisherService;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheName;
 import io.quarkus.cache.CaffeineCache;
@@ -54,6 +55,9 @@ public class BaseQueueConfiguration {
     @CacheName("service-cache")
     Cache cache;
 
+    @Inject
+    ServicePublisherService servicePublisherService;
+
     void onStartUp(@Observes StartupEvent start){
         Log.info("onStart event");
     }
@@ -66,32 +70,25 @@ public class BaseQueueConfiguration {
     @PostConstruct
     public void messagingQueueInit(){
         Log.info("Messaging queue intialisation");
-        fetchFromDB();
-//        Config config = new Config(); //dummy
-//        ConfigValue s = ConfigProvider.getConfig().getConfigValue("implement.queue");
-//        if(!StringUtils.isEmpty(s.getValue())){
-//            Arrays.stream(s.getValue().split(","))
-//                    .filter(e->!StringUtils.isEmpty(e))
-//                    .forEach(msgQueue->messagingQueueFactory.getMessagingQueue(AppConstant.MessageQueue.valueOf(msgQueue.toUpperCase())).init(config));
-//        }
+        servicePublisherService.cacheOnStart().subscribe().with(ele-> fetchFromCache(), failure-> Log.error("Failure occured in message queue intialisation:"+failure.getMessage()));
     }
 
-    private void fetchFromCache(){
-        if(cache!=null) {
-                cache.as(CaffeineCache.class).keySet().parallelStream().forEach(serviceKey -> {
-                CompletableFuture<Service> cacheRes = cache.as(CaffeineCache.class).getIfPresent(serviceKey);
-                if (cacheRes != null) {
-                    Uni.createFrom().item(cacheRes).subscribe().with(ele -> {
-                        try {
-                            initialiseMQ(ele.get().getConfig());
-                        } catch (InterruptedException | ExecutionException e) {
-                            Log.error("Error occured while initialising the queue:{}",e);
-                            throw new RuntimeException(e);
-                        }
-                    });
-                }
-            });
-        }
+    private Uni<Void> fetchFromCache(){
+        if(cache==null) return fetchFromDB();
+        cache.as(CaffeineCache.class).keySet().parallelStream().forEach(serviceKey -> {
+            CompletableFuture<Service> cacheRes = cache.as(CaffeineCache.class).getIfPresent(serviceKey);
+            if (cacheRes != null) {
+                Uni.createFrom().item(cacheRes).subscribe().with(ele -> {
+                    try {
+                        initialiseMQ(ele.get().getConfig());
+                    } catch (InterruptedException | ExecutionException e) {
+                        Log.error("Error occured while initialising the queue:{}",e);
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+        });
+        return  Uni.createFrom().voidItem();
     }
 
 
@@ -103,11 +100,12 @@ public class BaseQueueConfiguration {
                 .forEach(msgQueue->messagingQueueFactory.getMessagingQueue(AppConstant.MessageQueue.valueOf(msgQueue.toUpperCase())).init(config));
     }
 
-    private void fetchFromDB(){
+    private Uni<Void> fetchFromDB(){
         Service.findByStatus(AppConstant.Status.LIVE.toString()).subscribe()
                 .with(serviceList -> serviceList.forEach(service ->
                         initialiseMQ(service.getConfig()
                         )));
+        return Uni.createFrom().voidItem();
     }
 
 }
