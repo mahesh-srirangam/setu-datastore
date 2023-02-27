@@ -31,7 +31,7 @@ spec:
         - java
         #- -javaagent:/app/newrelic/newrelic.jar
         - -jar
-        - /app/ROOT.jar
+        - /app/setu-1.0.0-SNAPSHOT.jar
         env:
         - name: JAVA_TOOL_OPTIONS
           value: "-XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Xms3584M -Xmx3584M"
