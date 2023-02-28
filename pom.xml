@@ -252,6 +252,13 @@
     </plugins>
   </build>
   <profiles>
+<!--    <profile>-->
+<!--      <id>prod</id>-->
+<!--      <properties>-->
+<!--        <skipITs>false</skipITs>-->
+<!--&lt;!&ndash;        <quarkus.package.type>native</quarkus.package.type>&ndash;&gt;-->
+<!--      </properties>-->
+<!--    </profile>-->
     <profile>
       <id>native</id>
       <activation>
