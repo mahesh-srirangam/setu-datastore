@@ -21,6 +21,6 @@ RUN unzip newrelic-java.zip -d /app/
 RUN mkdir /app/config
 RUN touch /app/config/newrelic.yml
 RUN ln -sf  /app/config/newrelic.yml /app/newrelic/newrelic.yml
-ENTRYPOINT ["sh","-c","exec java -javaagent:/app/newrelic/newrelic.jar -Dquarkus.profile=dev -jar /app/setu-1.0.0-SNAPSHOT-runner.jar --server.tomcat.protocol-header=x-forwarded-proto"]
-CMD [--spring.profiles.active=prod]
+ENTRYPOINT ["sh","-c","exec java -javaagent:/app/newrelic/newrelic.jar -jar /app/setu-1.0.0-SNAPSHOT-runner.jar --server.tomcat.protocol-header=x-forwarded-proto"]
+CMD [--quarkus.profile=dev]
 
