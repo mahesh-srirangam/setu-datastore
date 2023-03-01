@@ -49,7 +49,7 @@ public class KafkaConfiguration implements MessagingQueue {
     @Inject
     KafkaQueueConsumer kafkaQueueConsumer;
 
-    private KafkaConsumer<String, Integer> consumer;
+    private KafkaConsumer<String, String> consumer;
 
     private String kafkaTopic;
     /**
@@ -63,7 +63,7 @@ public class KafkaConfiguration implements MessagingQueue {
         kafkaQueueConsumer.init(consumer, kafkaTopic);
     }
 
-    public KafkaConsumer<String, Integer> getConsumer() {
+    public KafkaConsumer<String, String> getConsumer() {
         return consumer;
     }
 

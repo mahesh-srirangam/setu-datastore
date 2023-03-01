@@ -38,7 +38,7 @@ public class KafkaQueueConsumer {
     /**
      * Consuming messages from a single topic
      */
-    void init(KafkaConsumer<String, Integer> kafkaConsumer, String kafkaTopic) {
+    void init(KafkaConsumer<String, String> kafkaConsumer, String kafkaTopic) {
         Log.info("Initializing Kafka Consumer");
         kafkaConsumer.subscribe(kafkaTopic, ar -> {
             if (ar.succeeded()) {
@@ -53,7 +53,7 @@ public class KafkaQueueConsumer {
     /**
      * Consuming messages from list of topics
      */
-    void initialise(KafkaConsumer<String, Integer> kafkaConsumer, Set<String> listOfTopics){
+    void initialise(KafkaConsumer<String, String> kafkaConsumer, Set<String> listOfTopics){
         //Subscribe to list of topics of kafka consumer
         kafkaConsumer.subscribe(listOfTopics, ar -> {
             if (ar.succeeded()) {
@@ -68,9 +68,9 @@ public class KafkaQueueConsumer {
      * Consuming the message received from kafka
      * @param kafkaRecord
      */
-    private void consumeMessage(KafkaConsumerRecord<String, Integer>  kafkaRecord){
-        int inputPrice = kafkaRecord.value();
-        Log.info("Read price {} from Kafka"+ inputPrice);
+    private void consumeMessage(KafkaConsumerRecord<String, String>  kafkaRecord){
+        String value = kafkaRecord.value();
+        Log.info("Read price {} from Kafka"+ value);
        //invoke setu service
     }
 

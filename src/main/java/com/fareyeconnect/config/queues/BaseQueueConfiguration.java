@@ -23,7 +23,7 @@ package com.fareyeconnect.config.queues;
 import com.fareyeconnect.constant.AppConstant;
 import com.fareyeconnect.service.MessagingQueueFactory;
 import com.fareyeconnect.tool.dto.Config;
-import com.fareyeconnect.tool.model.Service;
+import com.fareyeconnect.tool.dto.ServiceKey;
 import com.fareyeconnect.tool.service.ServicePublisherService;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheName;
@@ -38,7 +38,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -60,6 +59,7 @@ public class BaseQueueConfiguration {
 
     void onStartUp(@Observes StartupEvent start){
         Log.info("onStart event");
+        messagingQueueInit();
     }
 
     /**
@@ -73,39 +73,40 @@ public class BaseQueueConfiguration {
         servicePublisherService.cacheOnStart().subscribe().with(ele-> fetchFromCache(), failure-> Log.error("Failure occured in message queue intialisation:"+failure.getMessage()));
     }
 
+    /**
+     * Fetches from locally cached services
+     * @return
+     */
     private Uni<Void> fetchFromCache(){
-        if(cache==null) return fetchFromDB();
         cache.as(CaffeineCache.class).keySet().parallelStream().forEach(serviceKey -> {
-            CompletableFuture<Service> cacheRes = cache.as(CaffeineCache.class).getIfPresent(serviceKey);
-            if (cacheRes != null) {
-                Uni.createFrom().item(cacheRes).subscribe().with(ele -> {
+            ServiceKey service = (ServiceKey) serviceKey;
+            try {
+                servicePublisherService.fetchLiveVersion(service.getConnector(), service.getConnectorVersion(), service.getService()).subscribe().with(ele-> {
                     try {
-                        initialiseMQ(ele.get().getConfig());
-                    } catch (InterruptedException | ExecutionException e) {
+                        initialiseMQ(ele.getConfig());
+                    } catch (Exception e) {
                         Log.error("Error occured while initialising the queue:{}",e);
-                        throw new RuntimeException(e);
                     }
                 });
+            } catch (ExecutionException | InterruptedException e) {
+                Thread.currentThread().interrupt();
+                Log.error("Exception occured while pulling the live version of the service:" + e.getMessage());
             }
         });
         return  Uni.createFrom().voidItem();
     }
 
 
+    /**
+     * Initialise the corresponding messaging queue from the config provided
+     * @param config
+     */
     private void initialiseMQ(Config config){
         String queueName = config.getQueueType();
         if(!StringUtils.isEmpty(queueName))
             Arrays.stream(queueName.split(","))
                 .filter(e->!StringUtils.isEmpty(e))
                 .forEach(msgQueue->messagingQueueFactory.getMessagingQueue(AppConstant.MessageQueue.valueOf(msgQueue.toUpperCase())).init(config));
-    }
-
-    private Uni<Void> fetchFromDB(){
-        Service.findByStatus(AppConstant.Status.LIVE.toString()).subscribe()
-                .with(serviceList -> serviceList.forEach(service ->
-                        initialiseMQ(service.getConfig()
-                        )));
-        return Uni.createFrom().voidItem();
     }
 
 }
