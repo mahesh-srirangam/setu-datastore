@@ -1,6 +1,6 @@
 apiVersion: v1
 data:
-  PROFILE: dev
+  PROFILE: prod
   PORT: "8080"
 kind: ConfigMap
 metadata:

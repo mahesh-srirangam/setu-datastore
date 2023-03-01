@@ -21,13 +21,16 @@
 
 package com.fareyeconnect;
 
+import io.quarkus.arc.profile.IfBuildProfile;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import io.quarkus.runtime.configuration.ProfileManager;
 
 @QuarkusMain
 public class App {
 
     public static void main(String[] args) {
+        System.out.println(ProfileManager.getActiveProfile());
         Quarkus.run(args);
     }
 }
