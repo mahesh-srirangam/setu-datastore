@@ -31,7 +31,7 @@ spec:
         - -Dquarkus.profile=prod
         #- -javaagent:/app/newrelic/newrelic.jar
         - -jar
-        - /app/setu-1.0.0-SNAPSHOT-runner.jar
+        - /app/quarkus-app/quarkus-run.jar
         env:
         - name: JAVA_TOOL_OPTIONS
           value: "-XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Xms3584M -Xmx3584M"
