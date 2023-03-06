@@ -34,7 +34,7 @@ spec:
         - /app/quarkus-app/quarkus-run.jar
         env:
         - name: JAVA_TOOL_OPTIONS
-          value: "-XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Xms3584M -Xmx3584M"
+          value: "-XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Xms250M -Xmx800M"
         - name: PROFILE
           valueFrom:
             configMapKeyRef:
@@ -81,11 +81,11 @@ spec:
           timeoutSeconds: 5
         resources:
           requests:
-            memory: "4608Mi"
-            cpu: "1000m"
+            memory: "250Mi"
+            cpu: "200m"
           limits:
-            memory: "4608Mi"
-            cpu: "2000m"
+            memory: "1000Mi"
+            cpu: "800m"
 
       volumes:
       - configMap:

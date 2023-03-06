@@ -62,7 +62,7 @@ public class ServiceExecutorController {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    @Path("{connectorCode}/{connectorVersion}/{serviceCode}")
+    @Path("{connectorCode}/v{connectorVersion}/{serviceCode}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<RestResponse<String>> serviceExecution(@RestPath String connectorCode, @RestPath int connectorVersion, @RestPath String serviceCode, String request) throws JsonProcessingException, XMLStreamException, ClassNotFoundException, JAXBException, ExecutionException, InterruptedException {
