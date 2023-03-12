@@ -198,7 +198,7 @@ public class FlowExecutionService {
      * @throws ClassNotFoundException
      * @throws JsonProcessingException
      */
-    private void executeFlow(Context context, Service service) throws ExecutionException, InterruptedException, ClassNotFoundException, JsonProcessingException {
+    private void executeFlow(Context context, Service service) throws ExecutionException, InterruptedException {
         String startTaskNumber = "1";
         Map<String, Task> flowMap = service.getFlow().stream().collect(Collectors.toMap(Task::getTaskNumber, Function.identity()));
         executeFlow(startTaskNumber, flowMap, context);
