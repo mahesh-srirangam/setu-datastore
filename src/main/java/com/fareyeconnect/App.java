@@ -26,6 +26,8 @@ import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.quarkus.runtime.configuration.ProfileManager;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.graalvm.polyglot.Context;
 
 @QuarkusMain
@@ -39,6 +41,7 @@ public class App {
 
         @Override
         public int run(String... args) throws Exception {
+            System.out.println(ConfigProvider.getConfig().getConfigValue("app.scriptEngineLanguage"));
             Quarkus.waitForExit();
             return 0;
         }

@@ -42,6 +42,7 @@ import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
@@ -229,12 +230,12 @@ public class ServicePublisherService implements Consumer<Service> {
                 if (item == null) {
                     return connectorService.findByCodeAndVersionAndCreatedByOrg(connectorCode, connectorVersion).onItem()
                             .transformToUni(connector -> {
-                                if (connector == null) throw new AppException("No connector found");
+                                if (connector == null) throw new AppException("No connector found", Response.Status.NOT_FOUND.getStatusCode());
                                 else {
                                     return serviceService.findByConnectorServiceCodeStatusAndCreatedByOrg((Connector) connector, serviceCode, AppConstant.Status.LIVE.toString())
                                             .onItem().transformToUni(serviceFromDb -> {
                                                 if (serviceFromDb == null)
-                                                    throw new AppException("No live service found");
+                                                    throw new AppException("No live service found",Response.Status.NOT_FOUND.getStatusCode());
                                                 else return Uni.createFrom().item(serviceFromDb);
                                             });
 

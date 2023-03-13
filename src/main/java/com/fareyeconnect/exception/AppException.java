@@ -16,19 +16,21 @@
  */
 package com.fareyeconnect.exception;
 
+import org.jboss.resteasy.reactive.ResponseStatus;
+import org.jboss.resteasy.reactive.client.api.WebClientApplicationException;
+
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
 /**
  *
  * @author Baldeep Singh Kwatra
  * @since 15-May-2022, 11:12:29 AM
  */
-public class AppException extends RuntimeException {
 
-    /**
-     * Creates a new instance of <code>NewException</code> without detail
-     * message.
-     */
-    public AppException() {
-    }
+public class AppException extends WebApplicationException {
+
 
     /**
      * Constructs an instance of <code>NewException</code> with the specified
@@ -37,7 +39,11 @@ public class AppException extends RuntimeException {
      * @param msg the detail message.
      */
     public AppException(String msg) {
-        super(msg);
+        super(msg, Response.Status.BAD_REQUEST);
+    }
+
+    public AppException(String msg,int statusCode){
+        super(msg,statusCode);
     }
     
 }

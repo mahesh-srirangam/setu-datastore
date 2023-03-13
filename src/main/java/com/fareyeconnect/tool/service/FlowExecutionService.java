@@ -22,6 +22,7 @@
 package com.fareyeconnect.tool.service;
 
 
+import com.fareyeconnect.config.Property;
 import com.fareyeconnect.exception.AppException;
 import com.fareyeconnect.service.VariableService;
 import com.fareyeconnect.tool.dto.Config;
@@ -70,8 +71,11 @@ public class FlowExecutionService {
     @Inject
     VariableService variableService;
 
+//    @Inject
+//    PropertyService property;
+
     @Inject
-    PropertyService property;
+    Property property;
 
     @Inject
     ServicePublisherService servicePublisherService;
@@ -101,9 +105,9 @@ public class FlowExecutionService {
             else {
                 try {
                     Object request = validateAndBuildRequest(service, requestBody);
-                    Language language = Language.JS;
+                    Language language = Language.valueOf(property.getScriptEngineLanguage());
                     try (Context context = buildContext(language, request, null)) {
-                        executeFlow(context, service);
+                        executeFlow(context, service, language);
                         RestResponse<String> response = extractResponse(context, language);
                         Log.info("Response " + response);
                         return Uni.createFrom().item(response);
@@ -137,7 +141,7 @@ public class FlowExecutionService {
         bindings.putMember(ContextMember.RESPONSE, null);
         bindings.putMember(ContextMember.VARIABLE, null);
         bindings.putMember(ContextMember.STATUS, null);
-        bindings.putMember(ContextMember.PROPERTY, property.getPropertyMap());
+        bindings.putMember(ContextMember.PROPERTY, null);
         if (tempTaskVar != null) {
             bindings.putMember(tempTaskVar, null);
             context.eval(language.toString(), "var " + tempTaskVar + "={}");
@@ -198,10 +202,10 @@ public class FlowExecutionService {
      * @throws ClassNotFoundException
      * @throws JsonProcessingException
      */
-    private void executeFlow(Context context, Service service) throws ExecutionException, InterruptedException {
+    private void executeFlow(Context context, Service service, Language language) throws ExecutionException, InterruptedException {
         String startTaskNumber = "1";
         Map<String, Task> flowMap = service.getFlow().stream().collect(Collectors.toMap(Task::getTaskNumber, Function.identity()));
-        executeFlow(startTaskNumber, flowMap, context);
+        executeFlow(startTaskNumber, flowMap, context, language);
     }
 
     /**
@@ -215,10 +219,10 @@ public class FlowExecutionService {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void executeFlow(String startTask, Map<String, Task> flowMap, Context context) throws ExecutionException, InterruptedException {
+    public void executeFlow(String startTask, Map<String, Task> flowMap, Context context, Language language) throws ExecutionException, InterruptedException {
         Queue<Task> taskQueue = new LinkedList<>();
         taskQueue.add(flowMap.get(startTask));
-        Value mainContextBindings = context.getBindings(Language.JS.toString());
+        Value mainContextBindings = context.getBindings(language.toString());
         while (!taskQueue.isEmpty()) {
             if (taskQueue.size() > 1) {
                 List<Task> taskList = new ArrayList<>(taskQueue);
@@ -229,9 +233,9 @@ public class FlowExecutionService {
                 for (Task task : taskList) {
                     CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
                         String contextMember = ContextMember.TEMP + UNDERSCORE + task.getTaskNumber();
-                        Context taskContext = buildContext(Language.JS, "", contextMember);
+                        Context taskContext = buildContext(language, "", contextMember);
                         task.execute(taskContext);
-                        taskContextBindings.put(contextMember, taskContext.getBindings(Language.JS.toString()).getMember(contextMember));
+                        taskContextBindings.put(contextMember, taskContext.getBindings(language.toString()).getMember(contextMember));
                         nextTaskList.addAll(task.getNextTask());
                     });
                     taskWorkers.add(completableFuture);

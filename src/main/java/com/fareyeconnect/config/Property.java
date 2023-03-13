@@ -72,6 +72,9 @@ public class Property {
     @ConfigProperty(name = "kafka.bootstrap.servers")
     private String kafkaBootstrapServers;
 
+    @ConfigProperty(name = "app.scriptEngineLanguage")
+    private String scriptEngineLanguage;
+
     // @ConfigProperty(name = "spring.rabbitmq.host")
     // private String rabbitHost;
 
