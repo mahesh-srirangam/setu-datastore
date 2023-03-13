@@ -43,7 +43,6 @@ public class RunFlyway {
 
     public void runFlywayMigration(@Observes StartupEvent event) {
         if (runMigration) {
-            Log.info(datasourceUsername+" "+datasourcePassword);
             Flyway flyway = Flyway.configure()
                     .dataSource("jdbc:" + datasourceUrl, datasourceUsername, datasourcePassword).load();
             flyway.migrate();
