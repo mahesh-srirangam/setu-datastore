@@ -40,6 +40,7 @@ import jakarta.xml.bind.JAXBException;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
+import org.jboss.resteasy.reactive.ResponseStatus;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -101,7 +102,7 @@ public class FlowExecutionService {
         Uni<Service> serviceUni = servicePublisherService.fetchLiveVersion(connectorCode, connectorVersion, serviceCode);
         return serviceUni.onItem().transformToUni(service -> {
             if (service == null)
-                throw new AppException("Service you are trying to excute doesn't exist");
+                throw new AppException("Service you are trying to excute doesn't exist", RestResponse.Status.NOT_FOUND.getStatusCode());
             else {
                 try {
                     Object request = validateAndBuildRequest(service, requestBody);
