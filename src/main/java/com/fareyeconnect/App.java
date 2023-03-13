@@ -21,27 +21,21 @@
 
 package com.fareyeconnect;
 
-import io.quarkus.arc.profile.IfBuildProfile;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import io.quarkus.runtime.configuration.ProfileManager;
-import org.eclipse.microprofile.config.ConfigProvider;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.graalvm.polyglot.Context;
 
 @QuarkusMain
 public class App {
 
     public static void main(String[] args) {
-        Quarkus.run(MyApp.class,args);
+        Quarkus.run(MyApp.class, args);
     }
 
     public static class MyApp implements QuarkusApplication {
 
         @Override
         public int run(String... args) throws Exception {
-            System.out.println(ConfigProvider.getConfig().getConfigValue("app.scriptEngineLanguage"));
             Quarkus.waitForExit();
             return 0;
         }

@@ -34,6 +34,8 @@ import com.fareyeconnect.service.VariableService;
 import io.opentelemetry.api.internal.StringUtils;
 import io.smallrye.mutiny.Uni;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  *
  * @author Baldeep Singh Kwatra
@@ -60,7 +62,7 @@ public class VariableController {
 
     @POST
     // @PreAuthorize("hasAuthority('VARIABLE_CREATE')")
-    public Uni<Variable> save(@Valid Variable variable) {
+    public Uni<Variable> save(@Valid Variable variable) throws ExecutionException, InterruptedException {
         if (!StringUtils.isNullOrEmpty(variable.getId())) {
             throw new AppException("id was invalidly set on request.");
         }
@@ -69,7 +71,7 @@ public class VariableController {
 
     @PUT
     // @PreAuthorize("hasAuthority('VARIABLE_UPDATE')")
-    public Uni<Variable> update(@Valid Variable variable) {
+    public Uni<Variable> update(@Valid Variable variable) throws ExecutionException, InterruptedException {
         return variableService.update(variable);
     }
 
@@ -78,5 +80,11 @@ public class VariableController {
     // @PreAuthorize("hasAuthority('VARIABLE_DELETE')")
     public Uni<Long> remove(String ids) {
         return variableService.remove(ids);
+    }
+
+    @GET
+    @Path("/cache")
+    public Object cache() throws ExecutionException, InterruptedException {
+        return variableService.getVariables();
     }
 }

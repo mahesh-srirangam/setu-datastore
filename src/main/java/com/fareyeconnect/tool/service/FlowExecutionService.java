@@ -139,7 +139,7 @@ public class FlowExecutionService {
         Value bindings = context.getBindings(language.toString());
         bindings.putMember(ContextMember.REQUEST, request);
         bindings.putMember(ContextMember.RESPONSE, null);
-        bindings.putMember(ContextMember.VARIABLE, null);
+        bindings.putMember(ContextMember.VARIABLE, variableService.getVariables());
         bindings.putMember(ContextMember.STATUS, null);
         bindings.putMember(ContextMember.PROPERTY, null);
         if (tempTaskVar != null) {

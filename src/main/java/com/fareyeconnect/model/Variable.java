@@ -21,11 +21,16 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 
 import com.fareyeconnect.config.AttributeEncryptor;
+import com.fareyeconnect.tool.model.Connector;
 import com.fareyeconnect.util.BeanUtil;
 
+import io.quarkus.panache.common.Parameters;
 import io.smallrye.common.constraint.NotNull;
+import io.smallrye.mutiny.Uni;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.time.LocalDateTime;
 
 /**
  *
