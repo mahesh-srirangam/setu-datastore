@@ -62,7 +62,7 @@ public class VariableController {
 
     @POST
     // @PreAuthorize("hasAuthority('VARIABLE_CREATE')")
-    public Uni<Variable> save(@Valid Variable variable) throws ExecutionException, InterruptedException {
+    public Uni<Variable> save(@Valid Variable variable)  {
         if (!StringUtils.isNullOrEmpty(variable.getId())) {
             throw new AppException("id was invalidly set on request.");
         }
@@ -71,7 +71,7 @@ public class VariableController {
 
     @PUT
     // @PreAuthorize("hasAuthority('VARIABLE_UPDATE')")
-    public Uni<Variable> update(@Valid Variable variable) throws ExecutionException, InterruptedException {
+    public Uni<Variable> update(@Valid Variable variable)  {
         return variableService.update(variable);
     }
 

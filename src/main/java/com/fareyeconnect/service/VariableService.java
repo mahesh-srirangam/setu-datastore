@@ -20,6 +20,7 @@ import com.fareyeconnect.config.PageRequest;
 import com.fareyeconnect.config.Paged;
 import com.fareyeconnect.config.security.GatewayUser;
 import com.fareyeconnect.constant.AppConstant;
+import com.fareyeconnect.exception.AppException;
 import com.fareyeconnect.model.Variable;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheName;
@@ -31,6 +32,7 @@ import io.quarkus.logging.Log;
 import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.mutiny.Uni;
+import org.jboss.resteasy.reactive.RestResponse;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -66,13 +68,13 @@ public class VariableService {
     }
 
     @ReactiveTransactional
-    public Uni<Variable> save(Variable variable) throws ExecutionException, InterruptedException {
+    public Uni<Variable> save(Variable variable) {
         syncVariableToCache(variable);
         return variable.persist();
     }
 
     @ReactiveTransactional
-    public Uni<Variable> update(Variable variable) throws ExecutionException, InterruptedException {
+    public Uni<Variable> update(Variable variable) {
         syncVariableToCache(variable);
         return Panache.getSession()
                 .chain(session -> session.merge(variable))
@@ -107,7 +109,7 @@ public class VariableService {
      *
      * @param variableList
      */
-    public void prepareVariablesAndPutCache(List<Variable> variableList) {
+    private void prepareVariablesAndPutCache(List<Variable> variableList) {
         Map<String, Map<String, String>> variableMap = new HashMap<>();
         for (Variable variable : variableList) {
             Map<String, String> keyValPair = variableMap.getOrDefault(variable.getCreatedByOrg(), new HashMap<>());
@@ -124,17 +126,21 @@ public class VariableService {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void syncVariableToCache(Variable variable) throws ExecutionException, InterruptedException {
-        String organizationId = GatewayUser.getUser().getOrganizationId();
-        CompletableFuture<Map<String, String>> mapCompletableFuture = cache.as(CaffeineCache.class).getIfPresent(organizationId);
-        Map<String, String> variableMap;
-        if (mapCompletableFuture == null) {
-            variableMap = Collections.singletonMap(organizationId, variable.getValue());
-        } else {
-            variableMap = mapCompletableFuture.get();
-            variableMap.put(variable.getKey(), variable.getValue());
+    private void syncVariableToCache(Variable variable)  {
+        try {
+            String organizationId = GatewayUser.getUser().getOrganizationId();
+            CompletableFuture<Map<String, String>> mapCompletableFuture = cache.as(CaffeineCache.class).getIfPresent(organizationId);
+            Map<String, String> variableMap;
+            if (mapCompletableFuture == null) {
+                variableMap = Collections.singletonMap(organizationId, variable.getValue());
+            } else {
+                variableMap = mapCompletableFuture.get();
+                variableMap.put(variable.getKey(), variable.getValue());
+            }
+            cache.as(CaffeineCache.class).put(organizationId, CompletableFuture.completedFuture(variableMap));
+        }catch (Exception e){
+            throw new AppException("Failed to load value from cache", RestResponse.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
-        cache.as(CaffeineCache.class).put(organizationId, CompletableFuture.completedFuture(variableMap));
     }
 
 
@@ -197,7 +203,7 @@ public class VariableService {
      * If cache doesn't exist add the newly created variables
      * @param variableList
      */
-    public void updateCacheInAutoSync(List<Variable> variableList) {
+    private void updateCacheInAutoSync(List<Variable> variableList) {
         Map<String, List<Variable>> updateVariableMap = new HashMap<>();
         Map<String, Map<String, String>> finalVariableMap = new HashMap<>();
         for (Variable variable : variableList) {
