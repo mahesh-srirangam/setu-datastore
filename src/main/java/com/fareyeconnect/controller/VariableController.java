@@ -85,6 +85,6 @@ public class VariableController {
     @GET
     @Path("/cache")
     public Object cache() throws ExecutionException, InterruptedException {
-        return variableService.getVariables();
+        return variableService.get();
     }
 }

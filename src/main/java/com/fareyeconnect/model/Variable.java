@@ -1,11 +1,11 @@
 /**
  * ****************************************************************************
- *
+ * <p>
  * Copyright (c) 2022, FarEye and/or its affiliates. All rights
  * reserved.
  * ___________________________________________________________________________________
- *
- *
+ * <p>
+ * <p>
  * NOTICE: All information contained herein is, and remains the property of
  * FarEye and its suppliers,if any. The intellectual and technical concepts
  * contained herein are proprietary to FarEye. and its suppliers and
@@ -16,21 +16,19 @@
  */
 package com.fareyeconnect.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
-
 import com.fareyeconnect.config.AttributeEncryptor;
-import com.fareyeconnect.tool.model.Connector;
 import com.fareyeconnect.util.BeanUtil;
-
 import io.quarkus.panache.common.Parameters;
 import io.smallrye.common.constraint.NotNull;
 import io.smallrye.mutiny.Uni;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  *
@@ -57,6 +55,10 @@ public class Variable extends AbstractEntity {
 
     public String getValue() {
         return BeanUtil.bean(AttributeEncryptor.class).convertToEntityAttribute(value);
+    }
+
+    public static Uni<List<Variable>> findByVariablesModifiedAfter(LocalDateTime modified) {
+        return list("modified>= :modified", Parameters.with("modified", modified));
     }
 
 }

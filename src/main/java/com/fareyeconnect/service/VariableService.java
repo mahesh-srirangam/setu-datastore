@@ -36,10 +36,9 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -54,6 +53,8 @@ public class VariableService {
     @Inject
     @CacheName("variable")
     Cache cache;
+
+    private final String LAST_SYNCED_AT = "LAST_SYNCED_AT";
 
     @PostConstruct
     public void init() {
@@ -96,16 +97,24 @@ public class VariableService {
      */
     @ReactiveTransactional
     public void cacheVariables() {
+        cache.as(CaffeineCache.class).put(LAST_SYNCED_AT, CompletableFuture.completedFuture(LocalDateTime.now()));
         PanacheQuery<Variable> variables = Variable.findAll();
-        variables.list().subscribe().with(variableList -> {
-            Map<String, Map<String, String>> variableMap = new HashMap<>();
-            for (Variable variable : variableList) {
-                Map<String, String> keyValPair = variableMap.getOrDefault(variable.getCreatedByOrg(), new HashMap<>());
-                keyValPair.put(variable.getKey(), variable.getValue());
-                variableMap.put(variable.getCreatedByOrg(), keyValPair);
-            }
-            variableMap.forEach((key, value) -> cache.as(CaffeineCache.class).put(key, CompletableFuture.completedFuture(value)));
-        });
+        variables.list().subscribe().with(this::prepareVariablesAndPutCache);
+    }
+
+    /**
+     * Prepare cache and update the cache
+     *
+     * @param variableList
+     */
+    public void prepareVariablesAndPutCache(List<Variable> variableList) {
+        Map<String, Map<String, String>> variableMap = new HashMap<>();
+        for (Variable variable : variableList) {
+            Map<String, String> keyValPair = variableMap.getOrDefault(variable.getCreatedByOrg(), new HashMap<>());
+            keyValPair.put(variable.getKey(), variable.getValue());
+            variableMap.put(variable.getCreatedByOrg(), keyValPair);
+        }
+        variableMap.forEach((key, value) -> cache.as(CaffeineCache.class).put(key, CompletableFuture.completedFuture(value)));
     }
 
     /**
@@ -146,13 +155,55 @@ public class VariableService {
             contextVariableMap.putAll(defaultOrgVariables.get());
             contextVariableMap.putAll(orgSpecificVariables.get());
         } catch (Exception e) {
-            Log.error("Error putting variables in context "+ e);
+            Log.error("Error putting variables in context " + e);
         }
         return contextVariableMap;
     }
 
     @Scheduled(every = "5m", delayed = "5m", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
-    public void autoSync() {
+    @ReactiveTransactional
+    public Uni<Void> autoSync() throws ExecutionException, InterruptedException {
+        try {
+            Log.info("Auto Sync start");
+            LocalDateTime updatedSyncTime = LocalDateTime.now();
+            LocalDateTime lastSyncedAt = (LocalDateTime) cache.as(CaffeineCache.class).getIfPresent(LAST_SYNCED_AT).get();
+            Uni<List<Variable>> variablesListModifiedAfter = Variable.findByVariablesModifiedAfter(lastSyncedAt);
+            variablesListModifiedAfter.subscribe().with(variables -> {
+                Log.info("Auto Syncing newly modified variables " + variables.size());
+                prepareVariablesAndPutCache(variables);
+                Uni<Void> invalidateVoid = cache.as(CaffeineCache.class).invalidate(LAST_SYNCED_AT);
+                invalidateVoid.subscribe().with(result -> cache.as(CaffeineCache.class).put(LAST_SYNCED_AT, CompletableFuture.completedFuture(updatedSyncTime)));
+                Log.info("Auto Sync end");
+            });
+        } catch (Exception e) {
+            Log.error("Error while " + e);
+        }
+        return Uni.createFrom().voidItem();
+    }
 
+    public void updateCacheInAutoSync(List<Variable> variableList) {
+        Map<String, Map<String, String>> updateVariableMap = new HashMap<>();
+        for (Variable variable : variableList) {
+        }
+
+        updateVariableMap.forEach((key, value) -> {
+            CompletableFuture<Map<String, String>> orgWiseVariable = cache.as(CaffeineCache.class).getIfPresent(key);
+            if (orgWiseVariable == null) {
+                cache.as(CaffeineCache.class).put(key, CompletableFuture.completedFuture(value));
+            } else {
+                try {
+                    Map<String, String> variableMap = orgWiseVariable.get();
+                    variableMap.putAll(value);
+                    Uni<Void> invalidateKey = cache.as(CaffeineCache.class).invalidate(key);
+                    invalidateKey.subscribe().with(result -> cache.as(CaffeineCache.class).put(key, CompletableFuture.completedFuture(variableMap)));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
+    public Object get() throws ExecutionException, InterruptedException {
+        return cache.as(CaffeineCache.class).getIfPresent("1").get();
     }
 }
