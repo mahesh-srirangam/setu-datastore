@@ -36,11 +36,11 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 /**
  * @author Baldeep Singh Kwatra
@@ -160,9 +160,9 @@ public class VariableService {
         return contextVariableMap;
     }
 
-    @Scheduled(every = "5m", delayed = "5m", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    @Scheduled(every = "1m", delayed = "1m", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     @ReactiveTransactional
-    public Uni<Void> autoSync() throws ExecutionException, InterruptedException {
+    public Uni<Void> autoSync() {
         try {
             Log.info("Auto Sync start");
             LocalDateTime updatedSyncTime = LocalDateTime.now();
@@ -170,7 +170,7 @@ public class VariableService {
             Uni<List<Variable>> variablesListModifiedAfter = Variable.findByVariablesModifiedAfter(lastSyncedAt);
             variablesListModifiedAfter.subscribe().with(variables -> {
                 Log.info("Auto Syncing newly modified variables " + variables.size());
-                prepareVariablesAndPutCache(variables);
+                updateCacheInAutoSync(variables);
                 Uni<Void> invalidateVoid = cache.as(CaffeineCache.class).invalidate(LAST_SYNCED_AT);
                 invalidateVoid.subscribe().with(result -> cache.as(CaffeineCache.class).put(LAST_SYNCED_AT, CompletableFuture.completedFuture(updatedSyncTime)));
                 Log.info("Auto Sync end");
@@ -182,11 +182,15 @@ public class VariableService {
     }
 
     public void updateCacheInAutoSync(List<Variable> variableList) {
-        Map<String, Map<String, String>> updateVariableMap = new HashMap<>();
+        Map<String, List<Variable>> updateVariableMap = new HashMap<>();
+        Map<String, Map<String, String>> finalVariableMap = new HashMap<>();
         for (Variable variable : variableList) {
+            if (!updateVariableMap.containsKey(variable.getCreatedByOrg()))
+                updateVariableMap.put(variable.getCreatedByOrg(), new ArrayList<>());
+            updateVariableMap.computeIfAbsent(variable.getCreatedByOrg(), k -> new ArrayList<>()).add(variable);
         }
-
-        updateVariableMap.forEach((key, value) -> {
+        updateVariableMap.forEach((k, v) -> finalVariableMap.put(k, v.stream().collect(Collectors.toMap(Variable::getKey, Variable::getValue))));
+        finalVariableMap.forEach((key, value) -> {
             CompletableFuture<Map<String, String>> orgWiseVariable = cache.as(CaffeineCache.class).getIfPresent(key);
             if (orgWiseVariable == null) {
                 cache.as(CaffeineCache.class).put(key, CompletableFuture.completedFuture(value));
