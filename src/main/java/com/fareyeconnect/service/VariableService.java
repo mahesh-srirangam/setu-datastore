@@ -160,7 +160,16 @@ public class VariableService {
         return contextVariableMap;
     }
 
-    @Scheduled(every = "1m", delayed = "1m", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    /**
+     * This scheduler is set to run every 5 minutes to sync the newly created/modified variables
+     *
+     * Get last sync date from cache
+     * Query in database which are modified after last sync date
+     * update variables cache
+     * update last_synced_at cache with current date
+     * @return
+     */
+    @Scheduled(every = "5m", delayed = "5m", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     @ReactiveTransactional
     public Uni<Void> autoSync() {
         try {
@@ -181,6 +190,13 @@ public class VariableService {
         return Uni.createFrom().voidItem();
     }
 
+    /**
+     * Update newly created variables in cache
+     *
+     * Check if org key created in cache fetch the existing key and update cache
+     * If cache doesn't exist add the newly created variables
+     * @param variableList
+     */
     public void updateCacheInAutoSync(List<Variable> variableList) {
         Map<String, List<Variable>> updateVariableMap = new HashMap<>();
         Map<String, Map<String, String>> finalVariableMap = new HashMap<>();
@@ -205,9 +221,5 @@ public class VariableService {
                 }
             }
         });
-    }
-
-    public Object get() throws ExecutionException, InterruptedException {
-        return cache.as(CaffeineCache.class).getIfPresent("1").get();
     }
 }

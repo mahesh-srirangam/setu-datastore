@@ -82,9 +82,4 @@ public class VariableController {
         return variableService.remove(ids);
     }
 
-    @GET
-    @Path("/cache")
-    public Object cache() throws ExecutionException, InterruptedException {
-        return variableService.get();
-    }
 }
