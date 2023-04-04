@@ -20,20 +20,20 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
-import com.fareyeconnect.tool.git.GitService;
+//import com.fareyeconnect.tool.git.GitService;
 
 @Path("/public")
 public class IndexController {
     
 
-    @Inject
-    GitService gitService;
-
-
-    @GET
-    @Path("git")
-    // @PreAuthorize("hasAuthority('VARIABLE_READ')")
-    public void get()  throws Exception{
-     gitService.push();
-    }
+//    @Inject
+//    GitService gitService;
+//
+//
+//    @GET
+//    @Path("git")
+//    // @PreAuthorize("hasAuthority('VARIABLE_READ')")
+//    public void get()  throws Exception{
+//     gitService.push();
+//    }
 }

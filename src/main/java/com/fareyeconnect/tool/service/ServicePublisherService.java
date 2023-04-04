@@ -40,8 +40,10 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Uni;
 
+import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import javax.interceptor.Interceptor;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -88,7 +90,7 @@ public class ServicePublisherService implements Consumer<Service> {
      * @param event
      */
     @ReactiveTransactional
-    void onStart(@Observes StartupEvent event) {
+    void onStart(@Observes @Priority(2) StartupEvent event) {
         Log.info("Publishing services start");
         serviceService.findByStatus(AppConstant.Status.LIVE.toString()).subscribe().with(serviceList ->
                 serviceList.forEach(service -> cacheServicesOnStartup(service).subscribe()
@@ -230,12 +232,13 @@ public class ServicePublisherService implements Consumer<Service> {
                 if (item == null) {
                     return connectorService.findByCodeAndVersionAndCreatedByOrg(connectorCode, connectorVersion).onItem()
                             .transformToUni(connector -> {
-                                if (connector == null) throw new AppException("No connector found", Response.Status.NOT_FOUND.getStatusCode());
+                                if (connector == null)
+                                    throw new AppException("No connector found", Response.Status.NOT_FOUND.getStatusCode());
                                 else {
                                     return serviceService.findByConnectorServiceCodeStatusAndCreatedByOrg((Connector) connector, serviceCode, AppConstant.Status.LIVE.toString())
                                             .onItem().transformToUni(serviceFromDb -> {
                                                 if (serviceFromDb == null)
-                                                    throw new AppException("No live service found",Response.Status.NOT_FOUND.getStatusCode());
+                                                    throw new AppException("No live service found", Response.Status.NOT_FOUND.getStatusCode());
                                                 else return Uni.createFrom().item(serviceFromDb);
                                             });
 

@@ -164,7 +164,7 @@ public class FlowExecutionService {
         Value contextBindings = context.getBindings(language.toString());
         Value response = contextBindings.getMember(ContextMember.RESPONSE);
         Value statusCode = contextBindings.getMember(ContextMember.STATUS);
-        Map responseNode = response.as(Map.class);
+        Object responseNode = response.as(Object.class);
         return RestResponse.status(RestResponse.Status.fromStatusCode(statusCode.asInt()), objectMapper.writeValueAsString(responseNode));
     }
 

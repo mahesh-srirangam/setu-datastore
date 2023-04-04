@@ -18,6 +18,7 @@
  */
 package com.fareyeconnect.tool.dto;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,6 +30,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @Builder
+@RegisterForReflection
 public class ServiceKey {
 
     private String connector;

@@ -60,6 +60,7 @@ public class VariableService {
 
     @PostConstruct
     public void init() {
+        Log.info("Variables caching....");
         cacheVariables();
     }
 

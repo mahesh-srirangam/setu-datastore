@@ -40,18 +40,26 @@
 #COPY src /code/src
 #RUN ./mvnw package -Pnative
 
-## Stage 2 : create the docker final image
+### Stage 2 : create the docker final image
+#FROM quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:22.3-java17 AS build
+#COPY --chown=quarkus:quarkus mvnw /code/mvnw
+#COPY --chown=quarkus:quarkus .mvn /code/.mvn
+#COPY --chown=quarkus:quarkus pom.xml /code/
+#USER quarkus
+#WORKDIR /code
+#RUN ./mvnw -B org.apache.maven.plugins:maven-dependency-plugin:3.1.2:go-offline
+#COPY src /code/src
+#RUN ./mvnw package -Pnative -Dquarkus.profile=dev
+#-Dquarkus.native.additional-build-args="--language:js"
+
 FROM quay.io/quarkus/quarkus-micro-image:2.0
 WORKDIR /work/
-COPY --from=build /code/target/*-runner /work/application
-
-# set up permissions for user `1001`
-RUN chmod 775 /work /work/application \
-  && chown -R 1001 /work \
-  && chmod -R "g+rwX" /work \
-  && chown -R 1001:root /work
+RUN chown 1001 /work \
+    && chmod "g+rwX" /work \
+    && chown 1001:root /work
+COPY --chown=1001:root target/*-runner /work/application
 
 EXPOSE 8080
 USER 1001
-CMD ["./application", "-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -DCONFIG_ACCESS_TOKEN=0af950ae-c34b-459b-bc8b-44ef46566dcb -DCONFIG_LABEL=master -DCONFIG_NAME=redis,postgres,kafka,rabbitmq,s3,app-master,jaeger -DCONFIG_URI=https://api-dev.stagingfareyeconnect.com/config -DDB_NAME=setu_v2"]
+CMD ["./application", "-Djava.util.logging.manager=org.jboss.logmanager.LogManager"]
 #CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]

@@ -25,6 +25,7 @@ import java.util.UUID;
 import javax.validation.ConstraintViolation;
 import javax.ws.rs.core.Response.Status;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.Data;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 // import org.springframework.http.HttpStatus;
@@ -38,6 +39,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * @since 14-May-2022, 5:31:44 PM
  */
 @Data
+@RegisterForReflection
 class ApiError {
 
     private String errorId;
