@@ -56,11 +56,12 @@ public class RunFlyway {
 
     void onStart(@Observes StartupEvent event) {
         if (runMigration) {
+            Set<String> migrationFiles = new HashSet<>();
             if (!ProfileManager.getLaunchMode().isDevOrTest()) {
-                Set<String> migrationFiles = new HashSet<>();
                 String migrationFileNames = ConfigProvider.getConfig().getValue("app.migration-files", String.class);
                 List<String> files = Arrays.asList(migrationFileNames.split(","));
                 files.forEach(file -> migrationFiles.add(DB_MIGRATION + file));
+                migrationFiles.add("db/migration/V2022.10.15.11.00__init_ddl.sql");
                 QuarkusPathLocationScanner.setApplicationMigrationFiles(migrationFiles);
             }
             DataSource dataSource = Flyway.configure()
@@ -69,7 +70,7 @@ public class RunFlyway {
             FlywayContainerProducer flywayProducer = Arc.container().instance(FlywayContainerProducer.class).get();
             FlywayContainer flywayContainer = flywayProducer.createFlyway(dataSource, "<default>", true, true);
             Flyway flyway = flywayContainer.getFlyway();
-            //flyway.repair();
+            flyway.repair();
             flyway.migrate();
         }
     }

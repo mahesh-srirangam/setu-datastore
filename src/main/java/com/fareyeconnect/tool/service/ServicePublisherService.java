@@ -89,13 +89,13 @@ public class ServicePublisherService implements Consumer<Service> {
      *
      * @param event
      */
-    @ReactiveTransactional
-    void onStart(@Observes @Priority(2) StartupEvent event) {
-        Log.info("Publishing services start");
-        serviceService.findByStatus(AppConstant.Status.LIVE.toString()).subscribe().with(serviceList ->
-                serviceList.forEach(service -> cacheServicesOnStartup(service).subscribe()
-                        .with(done -> Log.info("Number of services cached " + serviceList.size()))));
-    }
+//    @ReactiveTransactional
+//    void onStart(@Observes @Priority(2) StartupEvent event) {
+//        Log.info("Publishing services start");
+//        serviceService.findByStatus(AppConstant.Status.LIVE.toString()).subscribe().with(serviceList ->
+//                serviceList.forEach(service -> cacheServicesOnStartup(service).subscribe()
+//                        .with(done -> Log.info("Number of services cached " + serviceList.size()))));
+//    }
 
     /**
      * Consume message pub/sub on publish service event

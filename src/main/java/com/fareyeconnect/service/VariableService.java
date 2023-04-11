@@ -58,11 +58,11 @@ public class VariableService {
 
     private final String LAST_SYNCED_AT = "LAST_SYNCED_AT";
 
-    @PostConstruct
-    public void init() {
-        Log.info("Variables caching....");
-        cacheVariables();
-    }
+//    @PostConstruct
+//    public void init() {
+//        Log.info("Variables caching....");
+//        cacheVariables();
+//    }
 
     public Uni<?> get(String id) {
         return Variable.findById(id).onItem().ifNull().failWith(EntityNotFoundException::new);
